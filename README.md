@@ -14,7 +14,7 @@
    - JSON syntax  
 
 ## 📄 File Structure
-```plaintext
+```php
 --- ADDRESS ---
 localhost:50051
 
