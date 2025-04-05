@@ -1,0 +1,29 @@
+{
+	"Section Template": {
+	  "prefix": "--- ",
+	  "body": "--- ${1|ADDRESS,ENDPOINT,REQUEST,RESPONSE|} ---",
+	  "description": "Insert properly formatted section header",
+	  "scope": "grpctestify"
+	},
+	"Full Test Template": {
+	  "prefix": "gctf",
+	  "body": [
+		"--- ADDRESS ---",
+		"localhost:50051",
+		"",
+		"--- ENDPOINT ---",
+		"my.Service/Method",
+		"",
+		"--- REQUEST ---",
+		"{",
+		"\t$0",
+		"}",
+		"",
+		"--- RESPONSE ---",
+		"{",
+		"\t",
+		"}"
+	  ],
+	  "description": "Full gRPC test template"
+	}
+  }

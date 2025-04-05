@@ -1,0 +1,57 @@
+{
+	"scopeName": "source.grpctestify",
+	"patterns": [
+	  { "include": "#sections" }
+	],
+	"repository": {
+	  "sections": {
+		"patterns": [
+		  { "include": "#address-section" },
+		  { "include": "#endpoint-section" },
+		  { "include": "#request-section" },
+		  { "include": "#response-section" }
+		]
+	  },
+	  "address-section": {
+		"begin": "^--- ADDRESS ---$",
+		"end": "(?=^--- [A-Z]+ ---|\\z)",
+		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
+		"patterns": [
+		  { "match": "^[\\w.-]+:\\d+", "name": "string.address.valid.grpctestify" },
+		  { "match": "^(?!\\s*$)(?!---).+", "name": "invalid.illegal.address.grpctestify" }
+		]
+	  },
+	  "endpoint-section": {
+		"begin": "^--- ENDPOINT ---$",
+		"end": "(?=^--- [A-Z]+ ---|\\z)",
+		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
+		"patterns": [
+			{
+				"match": "^([\\w\\.]+\\.)([\\w]+)\\/([\\w\\.]+)$",
+				"captures": {
+					"1": { "name": "entity.package.grpctestify" },  
+					"2": { "name": "entity.service.grpctestify" },  
+					"3": { "name": "entity.method.grpctestify" }    
+				}
+			},
+			{ "match": "^(?!\\s*$)(?!---).+", "name": "invalid.illegal.endpoint.grpctestify" }
+		]
+	  },
+	  "request-section": {
+		"begin": "^--- REQUEST ---$",
+		"end": "(?=^--- [A-Z]+ ---|\\z)",
+		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
+		"patterns": [
+		  { "include": "source.json" }
+		]
+	  },
+	  "response-section": {
+		"begin": "^--- RESPONSE ---$",
+		"end": "(?=^--- [A-Z]+ ---|\\z)",
+		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
+		"patterns": [
+		  { "include": "source.json" }
+		]
+	  }
+	}
+  }

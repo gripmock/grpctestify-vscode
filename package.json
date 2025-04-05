@@ -1,0 +1,204 @@
+{
+	"name": "grpctestify",
+	"displayName": "gRPCTestify",
+	"description": "Syntax highlighting and smart autocompletion for gRPC test files (.gctf)",
+	"version": "0.0.1",
+	"author": "Babichev Maksim <info@babichev.net>",
+	"license": "MIT",
+	"publisher": "gripmock",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/gripmock/grpctestify-vscode.git"
+	},
+	"bugs": {
+		"url": "https://github.com/gripmock/grpctestify-vscode/issues"
+	},
+	"homepage": "https://github.com/gripmock/grpctestify-vscode#readme",
+	"engines": {
+		"vscode": "^1.85.0"
+	},
+	"main": "./out/extension.js",
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./"
+	},
+	"devDependencies": {
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^22.14.0",
+		"@types/vscode": "^1.85.0",
+		"@vscode/test-electron": "^2.4.1",
+		"mocha": "^10.2.0",
+		"typescript": "^5.3.3",
+		"vsce": "^1.97.0"
+	},
+	"contributes": {
+		"languages": [
+			{
+				"id": "grpctestify",
+				"aliases": [
+					"gRPCTestify"
+				],
+				"extensions": [
+					".gctf"
+				],
+				"configuration": "./language-configuration.json",
+				"icon": {
+					"light": "icons/icon.svg",
+					"dark": "icons/icon.svg"
+				}
+			}
+		],
+		"grammars": [
+			{
+				"language": "grpctestify",
+				"scopeName": "source.grpctestify",
+				"path": "./syntaxes/grpctestify.tmLanguage.json"
+			},
+			{
+				"scopeName": "source.json",
+				"path": "./syntaxes/json.tmLanguage.json"
+			}
+		],
+		"snippets": [
+			{
+				"language": "grpctestify",
+				"path": "./snippets/grpctestify.code-snippets"
+			}
+		],
+		"colors": [
+			{
+				"id": "keyword.section.grpctestify",
+				"description": "Section keywords",
+				"defaults": {
+					"dark": "#569CD6",
+					"light": "#0000FF",
+					"highContrast": "#0000FF"
+				}
+			},
+			{
+				"id": "invalid.illegal.address.grpctestify",
+				"description": "Invalid address",
+				"defaults": {
+					"dark": "#FF0000",
+					"light": "#FF0000",
+					"highContrast": "#FF0000"
+				}
+			},
+			{
+				"id": "invalid.illegal.endpoint.grpctestify",
+				"description": "Invalid endpoint",
+				"defaults": {
+					"dark": "#FF0000",
+					"light": "#FF0000",
+					"highContrast": "#FF0000"
+				}
+			},
+			{
+				"id": "string.address.valid.grpctestify",
+				"description": "Valid address",
+				"defaults": {
+					"dark": "#00f0b8",
+					"light": "#00f0bc",
+					"highContrast": "#00f068"
+				}
+			},
+			{
+				"id": "entity.package.grpctestify",
+				"description": "Package name in ENDPOINT",
+				"defaults": {
+					"dark": "#D4A017",
+					"light": "#9C7526",
+					"highContrast": "#9C7526"
+				}
+			},
+			{
+				"id": "entity.service.grpctestify",
+				"description": "Service name in ENDPOINT",
+				"defaults": {
+					"dark": "#3CB371",
+					"light": "#2E8B57",
+					"highContrast": "#2E8B57"
+				}
+			},
+			{
+				"id": "entity.method.grpctestify",
+				"description": "Method name in ENDPOINT",
+				"defaults": {
+					"dark": "#9370DB",
+					"light": "#8A2BE2",
+					"highContrast": "#8A2BE2"
+				}
+			}
+		],
+		"configurationDefaults": {
+			"editor.tokenColorCustomizations": {
+				"textMateRules": [
+					{
+						"scope": "keyword.section.grpctestify",
+						"settings": {
+							"foreground": "#569CD6"
+						}
+					},
+					{
+						"scope": "invalid.illegal.address.grpctestify",
+						"settings": {
+							"foreground": "#FF0000"
+						}
+					},
+					{
+						"scope": "invalid.illegal.endpoint.grpctestify",
+						"settings": {
+							"foreground": "#FF0000"
+						}
+					},
+					{
+						"scope": "string.address.valid.grpctestify",
+						"settings": {
+							"foreground": "#00f0b8"
+						}
+					},
+					{
+						"scope": "entity.package.grpctestify",
+						"settings": {
+							"foreground": "#D4A017"
+						}
+					},
+					{
+						"scope": "entity.service.grpctestify",
+						"settings": {
+							"foreground": "#3CB371"
+						}
+					},
+					{
+						"scope": "entity.method.grpctestify",
+						"settings": {
+							"foreground": "#9370DB"
+						}
+					}
+				]
+			}
+		},
+		"configuration": {
+			"properties": {
+				"grpctestify.enableAutocomplete": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable smart autocomplete suggestions"
+				},
+				"grpctestify.strictSectionFormatting": {
+					"type": "boolean",
+					"default": true,
+					"description": "Ensure strict section formatting"
+				}
+			}
+		},
+		"keybindings": [
+			{
+				"command": "editor.action.triggerSuggest",
+				"key": "ctrl+space",
+				"when": "editorTextFocus && editorLangId == grpctestify"
+			}
+		]
+	}
+}
