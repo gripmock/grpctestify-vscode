@@ -4,6 +4,7 @@
 *Because testing gRPC services should be a delight*  
 
 ## 🌟 Features  
+✅ **Autocomplete** with context-aware suggestions  
 ✅ **Smart Syntax Highlighting**  
 ✅ **Handy Snippets** (`gctf` + `json`)  
 ✅ **Zero Configuration**  
@@ -11,7 +12,6 @@
    - `domain:port` format  
    - gRPC `Service/Method` endpoints  
    - JSON syntax  
-✅ **Autocomplete** with context-aware suggestions  
 
 ## 📄 File Structure
 ```plaintext
