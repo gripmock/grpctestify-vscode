@@ -9,7 +9,8 @@
 		  { "include": "#address-section" },
 		  { "include": "#endpoint-section" },
 		  { "include": "#request-section" },
-		  { "include": "#response-section" }
+		  { "include": "#response-section" },
+		  { "include": "#error-section" }
 		]
 	  },
 	  "address-section": {
@@ -47,6 +48,14 @@
 	  },
 	  "response-section": {
 		"begin": "^--- RESPONSE ---$",
+		"end": "(?=^--- [A-Z]+ ---|\\z)",
+		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
+		"patterns": [
+		  { "include": "source.json" }
+		]
+	  },
+	  "error-section": {
+		"begin": "^--- ERROR ---$",
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
 		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
 		"patterns": [

@@ -1,7 +1,7 @@
 {
 	"Section Template": {
 	  "prefix": "--- ",
-	  "body": "--- ${1|ADDRESS,ENDPOINT,REQUEST,RESPONSE|} ---",
+	  "body": "--- ${1|ADDRESS,ENDPOINT,REQUEST,RESPONSE,ERROR|} ---",
 	  "description": "Insert properly formatted section header",
 	  "scope": "grpctestify"
 	},
@@ -25,5 +25,27 @@
 		"}"
 	  ],
 	  "description": "Full gRPC test template"
-	}
+	},
+	"Full Test Template with ERROR": {
+	  "prefix": "gctfe",
+	  "body": [
+		"--- ADDRESS ---",
+		"localhost:50051",
+		"",
+		"--- ENDPOINT ---",
+		"my.Service/Method",
+		"",
+		"--- REQUEST ---",
+		"{",
+		"\t$0",
+		"}",
+		"",
+		"--- ERROR ---",
+		"{",
+		"\t",
+		"}"
+	  ],
+	  "description": "Full gRPC test template with error"
+	},
   }
+  

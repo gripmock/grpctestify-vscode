@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { GRPCTestifyDiagnostics } from './diagnostics';
 
 function getExistingSections(document: vscode.TextDocument): string[] {
-  const sections = ['ADDRESS', 'ENDPOINT', 'REQUEST', 'RESPONSE'];
+  const sections = ['ADDRESS', 'ENDPOINT', 'REQUEST', 'RESPONSE', 'ERROR'];
   return sections.filter(section => 
     new RegExp(`--- ${section} ---`, 'g').test(document.getText())
   );
@@ -28,7 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Section suggestions
         if (/^(---\s*)$/.test(lineText)) {
           const existing = getExistingSections(document);
-          const available = ['ADDRESS', 'ENDPOINT', 'REQUEST', 'RESPONSE']
+          const available = ['ADDRESS', 'ENDPOINT', 'REQUEST', 'RESPONSE', 'ERROR']
             .filter(s => !existing.includes(s));
 
           return available.map(section => {
