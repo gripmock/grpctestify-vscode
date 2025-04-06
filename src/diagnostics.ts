@@ -46,10 +46,12 @@ export class GRPCTestifyDiagnostics {
       }
     }
 
-    // Validation JSON in REQUEST and RESPONSE
-    const jsonSections = ['REQUEST', 'RESPONSE'];
+    const sectionPatternFn = (section: String) => new RegExp(`--- ${section} ---(?:.|\\n)*?(?=---|$)`, 'g');
+
+    // Validation JSON in REQUEST and RESPONSE and ERROR
+    const jsonSections = ['REQUEST', 'RESPONSE', 'ERROR'];
     jsonSections.forEach(section => {
-      const sectionPattern = new RegExp(`--- ${section} ---(?:.|\\n)*?(?=---|$)`, 'g');
+      const sectionPattern = sectionPatternFn(section);  
       let match;
       while ((match = sectionPattern.exec(text)) !== null) {
         const jsonContent = match[0].replace(`--- ${section} ---`, '').trim();
@@ -72,6 +74,30 @@ export class GRPCTestifyDiagnostics {
         }
       }
     });
+
+    // Validation RESPONSE and ERROR must not be filled at the same time
+    const responseMatch = sectionPatternFn('RESPONSE').exec(text);
+    const errorMatch = sectionPatternFn('ERROR').exec(text);
+
+    if (responseMatch !== null && errorMatch !== null) {
+      const responseContent = responseMatch[0].replace(`--- RESPONSE ---`, '').trim()
+      const errorContent = errorMatch[0].replace(`--- ERROR ---`, '').trim()
+
+      if (responseContent.length > 0 && errorContent.length > 0) {
+        const responseStart = text.indexOf(responseMatch[0]);
+        const errorEnd = text.indexOf(errorMatch[0]) + errorMatch[0].length;
+
+        const startPos = document.positionAt(responseStart);
+        const endPos = document.positionAt(errorEnd);
+
+        diagnostics.push({
+          code: 'bothResponseAndError',
+          message: 'Only one of RESPONSE or ERROR can be filled',
+          range: new vscode.Range(startPos, endPos),
+          severity: vscode.DiagnosticSeverity.Error
+        });
+      }
+    }
 
     this.diagnosticCollection.set(document.uri, diagnostics);
   }

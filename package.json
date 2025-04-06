@@ -2,7 +2,7 @@
 	"name": "grpctestify",
 	"displayName": "gRPCTestify",
 	"description": "Syntax highlighting and smart autocompletion for gRPC test files (.gctf)",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"author": "Babichev Maksim <info@babichev.net>",
 	"license": "MIT",
 	"publisher": "gripmock",
@@ -129,7 +129,16 @@
 					"light": "#8A2BE2",
 					"highContrast": "#8A2BE2"
 				}
-			}
+			},
+			{
+				"id": "invalid.illegal.both.grpctestify",
+				"description": "Both RESPONSE and ERROR sections filled",
+				"defaults": {
+				  "dark": "#FF0000",
+				  "light": "#FF0000",
+				  "highContrast": "#FF0000"
+				}
+			  }
 		],
 		"configurationDefaults": {
 			"editor.tokenColorCustomizations": {
@@ -174,6 +183,12 @@
 						"scope": "entity.method.grpctestify",
 						"settings": {
 							"foreground": "#9370DB"
+						}
+					},
+					{
+						"scope": "invalid.illegal.both.grpctestify",
+						"settings": {
+						  "foreground": "#FF0000"
 						}
 					}
 				]
