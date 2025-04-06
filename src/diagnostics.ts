@@ -46,7 +46,7 @@ export class GRPCTestifyDiagnostics {
       }
     }
 
-    const sectionPatternFn = (section: String) => new RegExp(`--- ${section} ---(?:.|\\n)*?(?=---|$)`, 'g');
+    const sectionPatternFn = (section: string) => new RegExp(`--- ${section} ---(?:.|\\n)*?(?=---|$)`, 'g');
 
     // Validation JSON in REQUEST and RESPONSE and ERROR
     const jsonSections = ['REQUEST', 'RESPONSE', 'ERROR'];
