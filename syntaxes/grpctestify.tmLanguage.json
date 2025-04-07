@@ -1,11 +1,17 @@
 {
 	"scopeName": "source.grpctestify",
 	"patterns": [
+	  { "include": "#comment" },
 	  { "include": "#sections" }
 	],
 	"repository": {
+	  "comment": {
+	    "match": "\\s*#(.*)$",
+	    "name": "comment.line.grpctestify"
+	  },
 	  "sections": {
 		"patterns": [
+		  { "include": "#comment" },
 		  { "include": "#address-section" },
 		  { "include": "#endpoint-section" },
 		  { "include": "#request-section" },
@@ -14,52 +20,108 @@
 		]
 	  },
 	  "address-section": {
-		"begin": "^--- ADDRESS ---$",
+		"begin": "^(---\\s+ADDRESS\\s+---)(.*)?$",
+		"beginCaptures": { 
+			"1": { "name": "keyword.section.name.grpctestify" },
+			"2": { 
+				"patterns": [
+					{ "include": "#comment" }
+				]
+			 }
+		 },
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
-		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
 		"patterns": [
-		  { "match": "^[\\w.-]+:\\d+", "name": "string.address.valid.grpctestify" },
-		  { "match": "^(?!\\s*$)(?!---).+", "name": "invalid.illegal.address.grpctestify" }
+			{ "include": "#comment" },
+		  	{ 
+				"match": "^([\\w.-]+:\\d+)(\\s*#.*)?$", 
+				"captures": {
+					"1": { "name": "string.address.valid.grpctestify" },
+					"2": {
+						"patterns": [
+							{ "include": "#comment" }
+						]
+					}
+				}
+			},
+			{ "match": "^(?!\\s*$)(?!---).+", "name": "invalid.illegal.address.grpctestify" }
 		]
 	  },
 	  "endpoint-section": {
-		"begin": "^--- ENDPOINT ---$",
+		"begin": "^(---\\s+ENDPOINT\\s+---)(.*)?$",
+		"beginCaptures": { 
+			"1": { "name": "keyword.section.name.grpctestify" },
+			"2": { 
+				"patterns": [
+					{ "include": "#comment" }
+				]
+			 }
+		 },
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
-		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
 		"patterns": [
-			{
-				"match": "^([\\w\\.]+\\.)([\\w]+)\\/([\\w\\.]+)$",
+			{ "include": "#comment" },
+		    {
+				"match": "^([\\w\\.]+\\.)([\\w]+)\\/([\\w\\.]+)(\\s*#.*)?$",
 				"captures": {
 					"1": { "name": "entity.package.grpctestify" },  
 					"2": { "name": "entity.service.grpctestify" },  
-					"3": { "name": "entity.method.grpctestify" }    
+					"3": { "name": "entity.method.grpctestify" },
+					"4": { "name": "comment.line.grpctestify" },
+					"5": {
+						"patterns": [
+							{ "include": "#comment" }
+						]
+					}
 				}
 			},
 			{ "match": "^(?!\\s*$)(?!---).+", "name": "invalid.illegal.endpoint.grpctestify" }
 		]
 	  },
 	  "request-section": {
-		"begin": "^--- REQUEST ---$",
+		"begin": "^(---\\s+REQUEST\\s+---)(.*)?$",
+		"beginCaptures": { 
+			"1": { "name": "keyword.section.name.grpctestify" },
+			"2": { 
+				"patterns": [
+					{ "include": "#comment" }
+				]
+			 }
+		 },
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
-		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
 		"patterns": [
-		  { "include": "source.json" }
+			{ "include": "#comment" },
+			{ "include": "source.json.grpctestify" }
 		]
 	  },
 	  "response-section": {
-		"begin": "^--- RESPONSE ---$",
+		"begin": "^(---\\s+RESPONSE\\s+---)(.*)?$",
+		"beginCaptures": { 
+			"1": { "name": "keyword.section.name.grpctestify" },
+			"2": { 
+				"patterns": [
+					{ "include": "#comment" }
+				]
+			 }
+		 },
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
-		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
 		"patterns": [
-		  { "include": "source.json" }
+			{ "include": "#comment" },
+			{ "include": "source.json.grpctestify" }
 		]
 	  },
 	  "error-section": {
-		"begin": "^--- ERROR ---$",
+		"begin": "^(---\\s+ERROR\\s+---)(.*)?$",
+		"beginCaptures": { 
+			"1": { "name": "keyword.section.name.grpctestify" },
+			"2": { 
+				"patterns": [
+					{ "include": "#comment" }
+				]
+			 }
+		 },
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
-		"beginCaptures": { "0": { "name": "keyword.section.grpctestify" } },
 		"patterns": [
-		  { "include": "source.json" }
+			{ "include": "#comment" },
+			{ "include": "source.json.grpctestify" }
 		]
 	  }
 	}

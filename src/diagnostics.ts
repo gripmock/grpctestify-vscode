@@ -12,42 +12,68 @@ export class GRPCTestifyDiagnostics {
     const diagnostics: vscode.Diagnostic[] = [];
     const text = document.getText();
 
+    const sectionPatternFn = (section: string) => new RegExp(`---\s*${section}\s*---(?:.|\\n)*?(?=---|$)`, 'g');
+
     // Validation ADDRESS
-    const addressRegex = /^--- ADDRESS ---\s*([\s\S]*?)(?=\n---|\s*$)/m;
-    const addressMatch = text.match(addressRegex);
-    if (addressMatch) {
-      const address = addressMatch[1].trim();
-      if (address && !/^[\w.-]+:\d+$/.test(address)) {
-        const startPos = document.positionAt(text.indexOf(addressMatch[0]) + addressMatch[0].indexOf(address));
-        const endPos = startPos.translate(0, address.length);
-        diagnostics.push({
-          code: 'invalidAddress',
-          message: 'Invalid address format. Expected: domain:port',
-          range: new vscode.Range(startPos, endPos),
-          severity: vscode.DiagnosticSeverity.Error
-        });
-      }
+    const addressContent = sectionPatternFn('ADDRESS');
+    let addressMatch = addressContent.exec(text);
+    if (addressMatch !== null) {
+        const lines = addressMatch[1]
+            .split('\n')
+            .map(line => line.split('#')[0].trim())
+            .filter(line => line)
+
+        const sectionStart = text.indexOf(addressMatch[0]);
+        
+        for (const line of lines) {
+            if (!/^[\w.-]+:\d+$/.test(line)) {
+                const lineStart = text.indexOf(line, sectionStart);
+                
+                if (lineStart === -1) continue
+                
+                const startPos = document.positionAt(lineStart);
+                const endPos = startPos.translate(0, line.length);
+                
+                diagnostics.push({
+                    code: 'invalidAddress',
+                    message: 'Invalid address format. Expected: domain:port',
+                    range: new vscode.Range(startPos, endPos),
+                    severity: vscode.DiagnosticSeverity.Error
+                });
+            }
+        }
     }
 
     // Validation ENDPOINT
-    const endpointRegex = /^--- ENDPOINT ---\s*([\s\S]*?)(?=\n---|\s*$)/m;
-    const endpointMatch = text.match(endpointRegex);
-    if (endpointMatch) {
-      const endpoint = endpointMatch[1].trim();
-      if (endpoint && !/^[\w.]+\/[\w.]+$/.test(endpoint)) {
-        const startPos = document.positionAt(text.indexOf(endpointMatch[0]) + endpointMatch[0].indexOf(endpoint));
-        const endPos = startPos.translate(0, endpoint.length);
-        diagnostics.push({
-          code: 'invalidEndpoint',
-          message: 'Invalid endpoint format. Expected: Package.Service/Method',
-          range: new vscode.Range(startPos, endPos),
-          severity: vscode.DiagnosticSeverity.Error
-        });
-      }
+    const endpointContent = sectionPatternFn('ENDPOINT');
+    let endpointMatch = endpointContent.exec(text);
+    if (endpointMatch !== null) {
+        const lines = endpointMatch[1]
+            .split('\n')
+            .map(line => line.split('#')[0].trim()) 
+            .filter(line => line)
+    
+        const sectionStart = text.indexOf(endpointMatch[0]);
+        
+        for (const line of lines) {
+            if (!/^[\w.]+\/[\w.]+$/.test(line)) {
+                const lineStart = text.indexOf(line, sectionStart);
+                
+                if (lineStart === -1) continue;
+                
+                const startPos = document.positionAt(lineStart);
+                const endPos = startPos.translate(0, line.length);
+                
+                diagnostics.push({
+                    code: 'invalidEndpoint',
+                    message: 'Invalid endpoint format. Expected: Package.Service/Method',
+                    range: new vscode.Range(startPos, endPos),
+                    severity: vscode.DiagnosticSeverity.Error
+                });
+            }
+        }
     }
-
-    const sectionPatternFn = (section: string) => new RegExp(`--- ${section} ---(?:.|\\n)*?(?=---|$)`, 'g');
-
+  
     // Validation JSON in REQUEST and RESPONSE and ERROR
     const jsonSections = ['REQUEST', 'RESPONSE', 'ERROR'];
     jsonSections.forEach(section => {
@@ -63,7 +89,7 @@ export class GRPCTestifyDiagnostics {
               ? error.message 
               : 'Unknown JSON error';
             const startPos = document.positionAt(text.indexOf(match[0]) + match[0].indexOf(jsonContent));
-            const endPos = startPos.translate(0, jsonContent.length);
+            const endPos = startPos.translate(0, match[0].length);
             diagnostics.push({
               code: 'invalidJson',
               message: `JSON error in ${section}: ${errorMessage}`,
