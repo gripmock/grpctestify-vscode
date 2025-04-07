@@ -9,7 +9,7 @@ function getExistingSections(document: vscode.TextDocument): string[] {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  // Валидация
+  // Validation
   const diagnostics = new GRPCTestifyDiagnostics(context);
   vscode.workspace.onDidChangeTextDocument(e => {
     if (e.document.languageId === 'grpctestify') {
