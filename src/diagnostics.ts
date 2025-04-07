@@ -1,104 +1,225 @@
 import * as vscode from 'vscode';
 
 export class GRPCTestifyDiagnostics {
-  private diagnosticCollection: vscode.DiagnosticCollection;
+    private diagnosticCollection: vscode.DiagnosticCollection;
 
-  constructor(context: vscode.ExtensionContext) {
-    this.diagnosticCollection = vscode.languages.createDiagnosticCollection('grpctestify');
-    context.subscriptions.push(this.diagnosticCollection);
+    constructor(context: vscode.ExtensionContext) {
+        this.diagnosticCollection = vscode.languages.createDiagnosticCollection('grpctestify');
+        context.subscriptions.push(this.diagnosticCollection);
+    }
+
+    public validate(document: vscode.TextDocument) {
+        const diagnostics: vscode.Diagnostic[] = [];
+        const text = document.getText();
+        const sections = this.parseSections(text);
+
+        this.validateSection({
+            text, document,
+            sectionName: 'ADDRESS',
+            validator: (line) => /^[\w.-]+:\d+$/.test(line),
+            errorCode: 'invalidAddress',
+            errorMessage: 'Invalid address format. Expected: domain:port'
+        }, diagnostics, sections);
+
+        this.validateSection({
+            text, document,
+            sectionName: 'ENDPOINT',
+            validator: (line) => /^[\w.]+\/[\w.]+$/.test(line),
+            errorCode: 'invalidEndpoint',
+            errorMessage: 'Invalid endpoint format. Expected: Package.Service/Method'
+        }, diagnostics, sections);
+
+        ['REQUEST', 'RESPONSE', 'ERROR'].forEach(section => {
+            this.validateJsonSection({ text, document, sectionName: section }, diagnostics, sections);
+        });
+
+        this.validateResponseErrorConflict(text, document, diagnostics, sections);
+
+        this.diagnosticCollection.set(document.uri, diagnostics);
+    }
+
+    private parseSections(text: string): Map<string, { headerStart: number, contentStart: number, contentEnd: number }> {
+      const sections = new Map();
+      const regex = /^---\s+(\w+)\s+---/gm;
+      let matches;
+
+      interface SectionPosition {
+          sectionName: string;
+          headerStart: number;
+          headerEnd: number;
+      }
+      const sectionPositions: SectionPosition[] = [];
+  
+      while ((matches = regex.exec(text)) !== null) {
+          const sectionName = matches[1];
+          const headerStart = matches.index;
+          const headerEnd = regex.lastIndex;
+        
+          if (headerEnd > text.length) {
+            break;
+          }
+    
+          sectionPositions.push({ sectionName, headerStart, headerEnd });
+      }
+  
+      sectionPositions.forEach((pos, index) => {
+          const nextPos = sectionPositions[index + 1];
+          const contentStart = pos.headerEnd;
+          const contentEnd = nextPos ? nextPos.headerStart : text.length;
+          sections.set(pos.sectionName, { 
+              headerStart: pos.headerStart,
+              contentStart,
+              contentEnd 
+          });
+      });
+  
+      return sections;
+    }
+
+    private validateSection(
+      { text, document, sectionName, validator, errorCode, errorMessage }: 
+      { text: string, document: vscode.TextDocument, sectionName: string, validator: (line: string) => boolean, errorCode: string, errorMessage: string },
+      diagnostics: vscode.Diagnostic[],
+      sections: Map<string, { headerStart: number, contentStart: number, contentEnd: number }>
+  ) {
+      const section = sections.get(sectionName);
+      if (!section) return;
+  
+      if (section.contentStart < 0 || section.contentEnd > text.length) {
+          return;
+      }
+  
+      const content = text.slice(section.contentStart, section.contentEnd);
+      const lines = content.split(/\r?\n/);
+  
+      lines.forEach((originalLine, index) => {
+          const lineOffset = section.contentStart + lines.slice(0, index).join('\n').length;
+          const processedLine = originalLine.split('#')[0].trim();
+          
+          if (!processedLine) return;
+  
+          const codeStart = originalLine.indexOf(processedLine);
+          const absoluteStart = lineOffset + codeStart;
+          const absoluteEnd = absoluteStart + processedLine.length;
+  
+          if (absoluteStart < 0 || absoluteStart >= text.length) return;
+          if (absoluteEnd < 0 || absoluteEnd > text.length) return;
+  
+          if (!validator(processedLine)) {
+              const startPos = document.positionAt(absoluteStart);
+              const endPos = document.positionAt(absoluteEnd);
+              
+              diagnostics.push({
+                  code: errorCode,
+                  message: errorMessage,
+                  range: new vscode.Range(startPos, endPos),
+                  severity: vscode.DiagnosticSeverity.Error
+              });
+          }
+      });
   }
-
-  public validate(document: vscode.TextDocument) {
-    const diagnostics: vscode.Diagnostic[] = [];
-    const text = document.getText();
-
-    // Validation ADDRESS
-    const addressRegex = /^--- ADDRESS ---\s*([\s\S]*?)(?=\n---|\s*$)/m;
-    const addressMatch = text.match(addressRegex);
-    if (addressMatch) {
-      const address = addressMatch[1].trim();
-      if (address && !/^[\w.-]+:\d+$/.test(address)) {
-        const startPos = document.positionAt(text.indexOf(addressMatch[0]) + addressMatch[0].indexOf(address));
-        const endPos = startPos.translate(0, address.length);
-        diagnostics.push({
-          code: 'invalidAddress',
-          message: 'Invalid address format. Expected: domain:port',
-          range: new vscode.Range(startPos, endPos),
-          severity: vscode.DiagnosticSeverity.Error
-        });
+  
+  private validateJsonSection(
+      { text, document, sectionName }: 
+      { text: string, document: vscode.TextDocument, sectionName: string },
+      diagnostics: vscode.Diagnostic[],
+      sections: Map<string, { headerStart: number, contentStart: number, contentEnd: number }>
+  ) {
+      const section = sections.get(sectionName);
+      if (!section) return;
+  
+      if (section.contentStart < 0 || section.contentEnd > text.length) {
+          return;
       }
-    }
+  
+      const content = text.slice(section.contentStart, section.contentEnd);
+  
+      if (!this.isSectionFilled(content)) return;
+  
+      try {
+          this.parseJsonWithComments(content);
+      } catch (error: any) {
+          const errorPosition = this.getJsonErrorPosition(content, error);
+          const startPosInContent = errorPosition.start;
+          const endPosInContent = errorPosition.end;
+  
+          if (startPosInContent < 0 || endPosInContent > content.length) {
+              return;
+          }
+  
+          const absoluteStart = section.contentStart + startPosInContent;
+          const absoluteEnd = section.contentStart + endPosInContent;
 
-    // Validation ENDPOINT
-    const endpointRegex = /^--- ENDPOINT ---\s*([\s\S]*?)(?=\n---|\s*$)/m;
-    const endpointMatch = text.match(endpointRegex);
-    if (endpointMatch) {
-      const endpoint = endpointMatch[1].trim();
-      if (endpoint && !/^[\w.]+\/[\w.]+$/.test(endpoint)) {
-        const startPos = document.positionAt(text.indexOf(endpointMatch[0]) + endpointMatch[0].indexOf(endpoint));
-        const endPos = startPos.translate(0, endpoint.length);
-        diagnostics.push({
-          code: 'invalidEndpoint',
-          message: 'Invalid endpoint format. Expected: Package.Service/Method',
-          range: new vscode.Range(startPos, endPos),
-          severity: vscode.DiagnosticSeverity.Error
-        });
-      }
-    }
-
-    const sectionPatternFn = (section: string) => new RegExp(`--- ${section} ---(?:.|\\n)*?(?=---|$)`, 'g');
-
-    // Validation JSON in REQUEST and RESPONSE and ERROR
-    const jsonSections = ['REQUEST', 'RESPONSE', 'ERROR'];
-    jsonSections.forEach(section => {
-      const sectionPattern = sectionPatternFn(section);  
-      let match;
-      while ((match = sectionPattern.exec(text)) !== null) {
-        const jsonContent = match[0].replace(`--- ${section} ---`, '').trim();
-        if (jsonContent) {
-          try {
-            JSON.parse(jsonContent);
-          } catch (error: any) {
-            const errorMessage = error instanceof Error 
-              ? error.message 
-              : 'Unknown JSON error';
-            const startPos = document.positionAt(text.indexOf(match[0]) + match[0].indexOf(jsonContent));
-            const endPos = startPos.translate(0, jsonContent.length);
-            diagnostics.push({
+          if (absoluteStart < 0 || absoluteEnd > text.length) {
+              return;
+          }
+  
+          const startPos = document.positionAt(absoluteStart);
+          const endPos = document.positionAt(absoluteEnd);
+          
+          diagnostics.push({
               code: 'invalidJson',
-              message: `JSON error in ${section}: ${errorMessage}`,
+              message: `JSON error in ${sectionName}: ${error.message}`,
               range: new vscode.Range(startPos, endPos),
               severity: vscode.DiagnosticSeverity.Error
-            });
-          }
-        }
+          });
       }
-    });
+  }
 
-    // Validation RESPONSE and ERROR must not be filled at the same time
-    const responseMatch = sectionPatternFn('RESPONSE').exec(text);
-    const errorMatch = sectionPatternFn('ERROR').exec(text);
+    private parseJsonWithComments(content: string): any {
+        const cleaned = content
+            .split('\n')
+            .map(line => line.split('#')[0].trim())
+            .filter(line => line)
+            .join('\n');
 
-    if (responseMatch !== null && errorMatch !== null) {
-      const responseContent = responseMatch[0].replace(`--- RESPONSE ---`, '').trim()
-      const errorContent = errorMatch[0].replace(`--- ERROR ---`, '').trim()
-
-      if (responseContent.length > 0 && errorContent.length > 0) {
-        const responseStart = text.indexOf(responseMatch[0]);
-        const errorEnd = text.indexOf(errorMatch[0]) + errorMatch[0].length;
-
-        const startPos = document.positionAt(responseStart);
-        const endPos = document.positionAt(errorEnd);
-
-        diagnostics.push({
-          code: 'bothResponseAndError',
-          message: 'Only one of RESPONSE or ERROR can be filled',
-          range: new vscode.Range(startPos, endPos),
-          severity: vscode.DiagnosticSeverity.Error
-        });
-      }
+        return JSON.parse(cleaned);
     }
 
-    this.diagnosticCollection.set(document.uri, diagnostics);
-  }
+    private getJsonErrorPosition(content: string, error: any): { start: number, end: number } {
+        try {
+            const match = error.message.match(/at position (\d+)/);
+            if (match) {
+                const pos = parseInt(match[1]);
+                return { start: pos, end: pos + 1 };
+            }
+        } catch {}
+
+        return { start: 0, end: content.length };
+    }
+
+    private isSectionFilled(content: string): boolean {
+        return content.split('\n')
+            .map(line => line.split('#')[0].trim())
+            .some(line => line.length > 0);
+    }
+
+    private validateResponseErrorConflict(
+        text: string, 
+        document: vscode.TextDocument, 
+        diagnostics: vscode.Diagnostic[],
+        sections: Map<string, { headerStart: number, contentStart: number, contentEnd: number }>
+    ) {
+        const responseSection = sections.get('RESPONSE');
+        const errorSection = sections.get('ERROR');
+
+        const responseFilled = responseSection && this.isSectionFilled(text.slice(responseSection.contentStart, responseSection.contentEnd));
+        const errorFilled = errorSection && this.isSectionFilled(text.slice(errorSection.contentStart, errorSection.contentEnd));
+
+        if (responseFilled && errorFilled) {
+            const responseStart = responseSection!.headerStart;
+            const errorEnd = errorSection!.contentEnd;
+
+            diagnostics.push({
+                code: 'bothResponseAndError',
+                message: 'Only one of RESPONSE or ERROR can be filled',
+                range: new vscode.Range(
+                    document.positionAt(responseStart),
+                    document.positionAt(errorEnd)
+                ),
+                severity: vscode.DiagnosticSeverity.Error
+            });
+        }
+    }
 }
+

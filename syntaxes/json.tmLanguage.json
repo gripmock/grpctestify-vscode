@@ -6,6 +6,7 @@
   "repository": {
     "value": {
       "patterns": [
+        { "include": "#comment" },
         { "include": "#string" },
         { "include": "#number" },
         { "include": "#object" },
@@ -13,6 +14,10 @@
         { "include": "#boolean" },
         { "include": "#null" }
       ]
+    },
+    "comment": {
+      "name": "comment.line.grpctestify",
+      "match": "(?<!\\S)(#.*)$"
     },
     "string": {
       "name": "string.quoted.double.json",
@@ -26,6 +31,7 @@
       "begin": "\\{",
       "end": "\\}",
       "patterns": [
+        { "include": "#comment" },
         { "include": "#string" },
         { "include": "#value" }
       ]
@@ -34,6 +40,7 @@
       "begin": "\\[",
       "end": "\\]",
       "patterns": [
+        { "include": "#comment" },
         { "include": "#value" }
       ]
     },

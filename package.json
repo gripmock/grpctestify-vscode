@@ -2,7 +2,7 @@
 	"name": "grpctestify",
 	"displayName": "gRPCTestify",
 	"description": "Syntax highlighting and smart autocompletion for gRPC test files (.gctf)",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"author": "Babichev Maksim <info@babichev.net>",
 	"license": "MIT",
 	"publisher": "gripmock",
@@ -68,7 +68,7 @@
 		],
 		"colors": [
 			{
-				"id": "keyword.section.grpctestify",
+				"id": "keyword.section.name.grpctestify",
 				"description": "Section keywords",
 				"defaults": {
 					"dark": "#569CD6",
@@ -134,17 +134,17 @@
 				"id": "invalid.illegal.both.grpctestify",
 				"description": "Both RESPONSE and ERROR sections filled",
 				"defaults": {
-				  "dark": "#FF0000",
-				  "light": "#FF0000",
-				  "highContrast": "#FF0000"
+					"dark": "#FF0000",
+					"light": "#FF0000",
+					"highContrast": "#FF0000"
 				}
-			  }
+			}
 		],
 		"configurationDefaults": {
 			"editor.tokenColorCustomizations": {
 				"textMateRules": [
 					{
-						"scope": "keyword.section.grpctestify",
+						"scope": "keyword.section.name.grpctestify",
 						"settings": {
 							"foreground": "#569CD6"
 						}
@@ -188,7 +188,7 @@
 					{
 						"scope": "invalid.illegal.both.grpctestify",
 						"settings": {
-						  "foreground": "#FF0000"
+							"foreground": "#FF0000"
 						}
 					}
 				]
