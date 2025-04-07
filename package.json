@@ -2,7 +2,7 @@
 	"name": "grpctestify",
 	"displayName": "gRPCTestify",
 	"description": "Syntax highlighting and smart autocompletion for gRPC test files (.gctf)",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"author": "Babichev Maksim <info@babichev.net>",
 	"license": "MIT",
 	"publisher": "gripmock",
@@ -18,6 +18,10 @@
 		"vscode": "^1.85.0"
 	},
 	"main": "./out/extension.js",
+	"activationEvents": [
+	  "onLanguage:grpctestify",
+	  "onCommand:grpctestify.runCode"
+	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./",
@@ -205,6 +209,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Ensure strict section formatting"
+				},
+				"code-runner.executorMap.grpctestify": {
+					"type": "string",
+					"default": "grpctestify --no-color",
+					"description": "Command to execute gRPCTestify files"
 				}
 			}
 		},
