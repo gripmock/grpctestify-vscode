@@ -89,7 +89,7 @@
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
 		"patterns": [
 			{ "include": "#comment" },
-			{ "include": "source.json.grpctestify" }
+			{ "include": "source.json" }
 		]
 	  },
 	  "response-section": {
@@ -105,7 +105,7 @@
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
 		"patterns": [
 			{ "include": "#comment" },
-			{ "include": "source.json.grpctestify" }
+			{ "include": "source.json" }
 		]
 	  },
 	  "error-section": {
@@ -121,7 +121,7 @@
 		"end": "(?=^--- [A-Z]+ ---|\\z)",
 		"patterns": [
 			{ "include": "#comment" },
-			{ "include": "source.json.grpctestify" }
+			{ "include": "source.json" }
 		]
 	  }
 	}

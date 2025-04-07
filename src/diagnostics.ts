@@ -12,7 +12,7 @@ export class GRPCTestifyDiagnostics {
     const diagnostics: vscode.Diagnostic[] = [];
     const text = document.getText();
 
-    const sectionPatternFn = (section: string) => new RegExp(`---\s*${section}\s*---(?:.|\\n)*?(?=---|$)`, 'g');
+    const sectionPatternFn = (section: string) => new RegExp(`---\s*${section}\s*---([\s\S]*)?(?=---|$)`, 'g');
 
     // Validation ADDRESS
     const addressContent = sectionPatternFn('ADDRESS');
@@ -80,16 +80,16 @@ export class GRPCTestifyDiagnostics {
       const sectionPattern = sectionPatternFn(section);  
       let match;
       while ((match = sectionPattern.exec(text)) !== null) {
-        const jsonContent = match[0].replace(`--- ${section} ---`, '').trim();
+        const jsonContent = match[1].trim();
         if (jsonContent) {
           try {
-            JSON.parse(jsonContent);
+            JSON.parse(jsonContent.replace(/[,\n]?(\s*#.+)\n/g, ''));
           } catch (error: any) {
             const errorMessage = error instanceof Error 
               ? error.message 
               : 'Unknown JSON error';
             const startPos = document.positionAt(text.indexOf(match[0]) + match[0].indexOf(jsonContent));
-            const endPos = startPos.translate(0, match[0].length);
+            const endPos = startPos.translate(0, jsonContent.length);
             diagnostics.push({
               code: 'invalidJson',
               message: `JSON error in ${section}: ${errorMessage}`,
@@ -106,8 +106,8 @@ export class GRPCTestifyDiagnostics {
     const errorMatch = sectionPatternFn('ERROR').exec(text);
 
     if (responseMatch !== null && errorMatch !== null) {
-      const responseContent = responseMatch[0].replace(`--- RESPONSE ---`, '').trim()
-      const errorContent = errorMatch[0].replace(`--- ERROR ---`, '').trim()
+      const responseContent = responseMatch[1].trim()
+      const errorContent = errorMatch[1].trim()
 
       if (responseContent.length > 0 && errorContent.length > 0) {
         const responseStart = text.indexOf(responseMatch[0]);

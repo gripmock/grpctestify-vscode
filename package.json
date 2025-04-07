@@ -56,7 +56,7 @@
 				"path": "./syntaxes/grpctestify.tmLanguage.json"
 			},
 			{
-				"scopeName": "source.json.grpctestify",
+				"scopeName": "source.json",
 				"path": "./syntaxes/json.tmLanguage.json"
 			}
 		],
