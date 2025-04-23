@@ -14,6 +14,7 @@
 		  { "include": "#comment" },
 		  { "include": "#address-section" },
 		  { "include": "#endpoint-section" },
+		  { "include": "#headers-section" },
 		  { "include": "#request-section" },
 		  { "include": "#response-section" },
 		  { "include": "#error-section" }
@@ -74,6 +75,34 @@
 				}
 			},
 			{ "match": "^(?!\\s*$)(?!---).+", "name": "invalid.illegal.endpoint.grpctestify" }
+		]
+	  },
+	  "headers-section": {
+		"begin": "^(---\\s+HEADERS\\s+---)(.*)?$",
+		"beginCaptures": { 
+			"1": { "name": "keyword.section.name.grpctestify" },
+			"2": { 
+				"patterns": [
+					{ "include": "#comment" }
+				]
+			 }
+		 },
+		"end": "(?=^--- [A-Z]+ ---|\\z)",
+		"patterns": [
+			{ "include": "#comment" },
+		    {
+				"match": "^(.+):(.+)(#.*)?$",
+				"captures": {
+					"1": { "name": "entity.header.key.grpctestify" },  
+					"2": { "name": "entity.header.value.grpctestify" },
+					"3": { "name": "comment.line.grpctestify" },
+					"4": {
+						"patterns": [
+							{ "include": "#comment" }
+						]
+					}
+				}
+			}
 		]
 	  },
 	  "request-section": {
