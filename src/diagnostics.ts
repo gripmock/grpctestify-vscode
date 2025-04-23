@@ -33,8 +33,6 @@ export class GRPCTestifyDiagnostics {
             this.validateJsonSection({ text, document, sectionName: section }, diagnostics, sections);
         });
 
-        this.validateResponseErrorConflict(text, document, diagnostics, sections);
-
         this.diagnosticCollection.set(document.uri, diagnostics);
     }
 
@@ -193,33 +191,4 @@ export class GRPCTestifyDiagnostics {
             .map(line => line.split('#')[0].trim())
             .some(line => line.length > 0);
     }
-
-    private validateResponseErrorConflict(
-        text: string, 
-        document: vscode.TextDocument, 
-        diagnostics: vscode.Diagnostic[],
-        sections: Map<string, { headerStart: number, contentStart: number, contentEnd: number }>
-    ) {
-        const responseSection = sections.get('RESPONSE');
-        const errorSection = sections.get('ERROR');
-
-        const responseFilled = responseSection && this.isSectionFilled(text.slice(responseSection.contentStart, responseSection.contentEnd));
-        const errorFilled = errorSection && this.isSectionFilled(text.slice(errorSection.contentStart, errorSection.contentEnd));
-
-        if (responseFilled && errorFilled) {
-            const responseStart = responseSection!.headerStart;
-            const errorEnd = errorSection!.contentEnd;
-
-            diagnostics.push({
-                code: 'bothResponseAndError',
-                message: 'Only one of RESPONSE or ERROR can be filled',
-                range: new vscode.Range(
-                    document.positionAt(responseStart),
-                    document.positionAt(errorEnd)
-                ),
-                severity: vscode.DiagnosticSeverity.Error
-            });
-        }
-    }
 }
-

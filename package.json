@@ -2,7 +2,7 @@
 	"name": "grpctestify",
 	"displayName": "gRPCTestify",
 	"description": "Syntax highlighting and smart autocompletion for gRPC test files (.gctf)",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"author": "Babichev Maksim <info@babichev.net>",
 	"license": "MIT",
 	"publisher": "gripmock",
@@ -99,6 +99,24 @@
 				}
 			},
 			{
+				"id": "entity.header.key.grpctestify",
+				"description": "Header key",
+				"defaults": {
+					"dark": "#D4A017",
+					"light": "#9C7526",
+					"highContrast": "#9C7526"
+				}
+			},
+			{
+				"id": "entity.header.value.grpctestify",
+				"description": "Header value",
+				"defaults": {
+					"dark": "#9370DB",
+					"light": "#8A2BE2",
+					"highContrast": "#8A2BE2"
+				}
+			},
+			{
 				"id": "string.address.valid.grpctestify",
 				"description": "Valid address",
 				"defaults": {
@@ -169,6 +187,18 @@
 						"scope": "string.address.valid.grpctestify",
 						"settings": {
 							"foreground": "#00f0b8"
+						}
+					},
+					{
+						"scope": "entity.header.key.grpctestify",
+						"settings": {
+							"foreground": "#D4A017"
+						}
+					},
+					{
+						"scope": "entity.header.value.grpctestify",
+						"settings": {
+							"foreground": "#9370DB"
 						}
 					},
 					{
