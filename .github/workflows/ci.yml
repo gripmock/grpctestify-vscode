@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  quality:
+    name: Quality (Ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install grpctestify CLI
+        run: cargo install grpctestify --locked
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Integration tests
+        run: npm run test:integration
+
+      - name: Package smoke
+        run: npm run package
+
+      - name: Dependency licenses
+        run: npm run deps:licenses
+
+      - name: Unused dependency check
+        run: npm run deps:unused
+
+      - name: Production dependency audit
+        run: npm run deps:audit
+
+  extension-host:
+    name: Extension Host (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install grpctestify CLI
+        run: cargo install grpctestify --locked
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Install xvfb (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Extension host tests
+        env:
+          VSCODE_VERSION: 1.100.2
+        run: npm run test:e2e:ci
+
+      - name: Upload extension-host diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-host-diagnostics-${{ matrix.os }}
+          path: |
+            .vscode-test/
+            out/test/
+          if-no-files-found: ignore
+
+  gripmock-integration:
+    name: GripMock Integration (Ubuntu)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install grpctestify CLI
+        run: cargo install grpctestify --locked
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start GripMock
+        id: gripmock
+        uses: bavix/gripmock-action@v1
+        with:
+          source: buf.build/connectrpc/eliza
+          wait-timeout: 60s
+
+      - name: Run GripMock-backed scenarios
+        env:
+          GRPCTESTIFY_GRIPMOCK_EXTERNAL: "1"
+          GRPCTESTIFY_GRIPMOCK_GRPC_PORT: ${{ steps.gripmock.outputs.grpc-port }}
+          GRPCTESTIFY_GRIPMOCK_HTTP_PORT: ${{ steps.gripmock.outputs.http-port }}
+        run: npm run test:gripmock

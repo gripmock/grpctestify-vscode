@@ -1,64 +1,203 @@
-import * as vscode from 'vscode';
-import { GRPCTestifyDiagnostics } from './diagnostics';
+import * as vscode from "vscode";
+import { registerCommands } from "./commands";
+import type { ActivationDiagnosticsSnapshot } from "./runtime/activationDiagnostics";
+import { resolveGrpctestifyBinary } from "./runtime/binaryResolver";
+import { GrpctestifyError, toErrorMessage } from "./runtime/errors";
+import { registerStatus } from "./status";
+import { registerTasks } from "./tasks";
+import { registerTesting } from "./testing";
+import { getTestingControllerDebugState } from "./testing/controller";
+import { registerTree } from "./tree";
+import { registerCodeLens } from "./ui/codeLens";
+import { registerCheckCodeActions } from "./ui/checkCodeActions";
+import { initializeCheckDiagnostics } from "./ui/checkDiagnostics";
+import { registerCompletionProvider } from "./ui/completionProvider";
+import { registerDocumentLinks } from "./ui/documentLinks";
+import { registerFormatting } from "./ui/formatProvider";
+import { registerHoverProvider } from "./ui/hoverProvider";
+import { registerLiveDiagnostics } from "./ui/liveDiagnostics";
+import { initializeOutputChannels } from "./ui/outputChannels";
 
-function getExistingSections(document: vscode.TextDocument): string[] {
-  const sections = ['ADDRESS', 'ENDPOINT', 'REQUEST', 'RESPONSE', 'ERROR'];
-  return sections.filter(section => 
-    new RegExp(`--- ${section} ---`, 'g').test(document.getText())
-  );
+interface LspDebugState {
+  hasClient: boolean;
+  running: boolean;
+  consecutiveFailures: number;
+  restarting: boolean;
+  stopping: boolean;
+  lastStartedAt?: string;
 }
 
-export function activate(context: vscode.ExtensionContext) {
-  // Validation
-  const diagnostics = new GRPCTestifyDiagnostics(context);
-  vscode.workspace.onDidChangeTextDocument(e => {
-    if (e.document.languageId === 'grpctestify') {
-      diagnostics.validate(e.document);
+interface LspClientAdapter {
+  start(): Promise<void>;
+  stop(): Promise<void>;
+  restart(): Promise<void>;
+  getDebugState(): LspDebugState;
+}
+
+let lspClient: LspClientAdapter | undefined;
+
+let hasShownBinaryMissingWarning = false;
+const integrationStatuses: Record<string, { ok: boolean; error?: string }> = {};
+
+function markIntegrationOk(name: string): void {
+  integrationStatuses[name] = { ok: true };
+}
+
+function markIntegrationError(name: string, error: unknown): void {
+  integrationStatuses[name] = { ok: false, error: toErrorMessage(error) };
+}
+
+function registerOptionalIntegration(name: string, action: () => void): void {
+  try {
+    action();
+    markIntegrationOk(name);
+  } catch (error) {
+    markIntegrationError(name, error);
+    void vscode.window.showWarningMessage(
+      `gRPCTestify optional integration '${name}' failed to initialize: ${toErrorMessage(error)}`,
+    );
+  }
+}
+
+async function showBinaryOnboardingIfNeeded(): Promise<void> {
+  try {
+    await resolveGrpctestifyBinary();
+  } catch (error) {
+    if (hasShownBinaryMissingWarning) {
+      return;
     }
+    hasShownBinaryMissingWarning = true;
+
+    if (
+      error instanceof GrpctestifyError &&
+      error.code === "BINARY_NOT_FOUND"
+    ) {
+      void vscode.window.showWarningMessage(
+        "gRPCTestify binary not found. Install grpctestify-rust or set grpctestify.binary.path.",
+      );
+      return;
+    }
+
+    void vscode.window.showWarningMessage(
+      `gRPCTestify startup check failed: ${toErrorMessage(error)}`,
+    );
+  }
+}
+
+async function createLspClient(): Promise<LspClientAdapter | undefined> {
+  try {
+    const lspModule = await import("./lsp/client");
+    return new lspModule.GrpctestifyLspClient();
+  } catch (error) {
+    markIntegrationError("lsp", error);
+    void vscode.window.showWarningMessage(
+      `gRPCTestify LSP module is unavailable: ${toErrorMessage(error)}. Commands remain available in fallback mode.`,
+    );
+    return undefined;
+  }
+}
+
+async function startLspInBackground(client: LspClientAdapter): Promise<void> {
+  try {
+    await client.start();
+    if (client.getDebugState().hasClient) {
+      markIntegrationOk("lsp");
+      return;
+    }
+
+    integrationStatuses.lsp = {
+      ok: false,
+      error: "LSP client is not running",
+    };
+    void vscode.window.showWarningMessage(
+      "gRPCTestify LSP is unavailable. Use Check/Format commands and run 'gRPCTestify: Restart LSP' after fixing CLI/runtime issues.",
+    );
+  } catch (error) {
+    markIntegrationError("lsp", error);
+    void vscode.window.showWarningMessage(
+      `gRPCTestify LSP failed to start: ${toErrorMessage(error)}. Commands remain available in fallback mode.`,
+    );
+  }
+}
+
+export async function activate(context: vscode.ExtensionContext) {
+  initializeOutputChannels(context);
+  markIntegrationOk("outputChannels");
+  registerCommands(context, {
+    restartLsp: async () => {
+      if (!lspClient) {
+        void vscode.window.showWarningMessage(
+          "gRPCTestify LSP is unavailable in this session. Run/Check/Format commands still work.",
+        );
+        return;
+      }
+      await lspClient.restart();
+    },
+    getActivationDiagnostics: (): ActivationDiagnosticsSnapshot => ({
+      integrations: { ...integrationStatuses },
+      lsp: lspClient
+        ? lspClient.getDebugState()
+        : {
+            hasClient: false,
+            running: false,
+            consecutiveFailures: 0,
+            restarting: false,
+            stopping: false,
+          },
+      testing: getTestingControllerDebugState(),
+    }),
+  });
+  markIntegrationOk("commands");
+
+  registerOptionalIntegration("tree", () => registerTree(context));
+  registerOptionalIntegration("testing", () => registerTesting(context));
+  registerOptionalIntegration("status", () => registerStatus(context));
+  registerOptionalIntegration("tasks", () => registerTasks(context));
+  registerOptionalIntegration("formatting", () => registerFormatting(context));
+  registerOptionalIntegration("codeLens", () => registerCodeLens(context));
+  registerOptionalIntegration("hover", () => registerHoverProvider(context));
+  registerOptionalIntegration("documentLinks", () => registerDocumentLinks(context));
+  registerOptionalIntegration("checkDiagnostics", () =>
+    initializeCheckDiagnostics(context),
+  );
+  registerOptionalIntegration("liveDiagnostics", () =>
+    registerLiveDiagnostics(context),
+  );
+  registerOptionalIntegration("checkCodeActions", () =>
+    registerCheckCodeActions(context),
+  );
+  registerOptionalIntegration("completion", () =>
+    registerCompletionProvider(context, {
+      isLspRunning: () => lspClient?.getDebugState().running ?? false,
+    }),
+  );
+
+  void showBinaryOnboardingIfNeeded();
+
+  void createLspClient().then((client) => {
+    lspClient = client;
+    if (!lspClient) {
+      integrationStatuses.lsp = {
+        ok: false,
+        error: "LSP module is unavailable",
+      };
+      return;
+    }
+
+    void startLspInBackground(lspClient);
   });
 
-  // Suggestions
-  const provider = vscode.languages.registerCompletionItemProvider(
-    'grpctestify',
-    {
-      provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-        const line = document.lineAt(position);
-        const lineText = line.text.slice(0, position.character);
-
-        // Section suggestions
-        if (/^(---\s*)$/.test(lineText)) {
-          const existing = getExistingSections(document);
-          const available = ['ADDRESS', 'ENDPOINT', 'REQUEST', 'RESPONSE', 'ERROR']
-            .filter(s => !existing.includes(s));
-
-          return available.map(section => {
-            const item = new vscode.CompletionItem(
-              section,
-              vscode.CompletionItemKind.Snippet
-            );
-            item.insertText = new vscode.SnippetString(`--- ${section} ---`);
-            item.range = new vscode.Range(
-              position.with({ character: 0 }),
-              position.with({ character: lineText.length })
-            );
-            return item;
-          });
-        }
-
-        // Suggestions for ENDPOINT
-        if (lineText.includes('--- ENDPOINT ---')) {
-          return [
-            new vscode.CompletionItem('my.package.Service/Method', vscode.CompletionItemKind.Value)
-          ];
-        }
-
-        return undefined;
-      }
-    },
-    '-'
-  );
-
-  context.subscriptions.push(provider);
+  if (!lspClient) {
+    integrationStatuses.lsp = {
+      ok: false,
+      error: "LSP startup pending",
+    };
+  }
 }
 
-export function deactivate() {}
+export async function deactivate(): Promise<void> {
+  if (lspClient) {
+    await lspClient.stop();
+    lspClient = undefined;
+  }
+}

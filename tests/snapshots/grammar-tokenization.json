@@ -1,0 +1,197 @@
+{
+  "sectionHeader": {
+    "line": "--- REQUEST ---",
+    "captures": [
+      {
+        "index": 0,
+        "text": "--- REQUEST ---",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "--- ",
+        "scope": "punctuation.definition.section.begin.grpctestify"
+      },
+      {
+        "index": 2,
+        "text": "REQUEST",
+        "scope": "keyword.section.name.grpctestify"
+      },
+      {
+        "index": 3,
+        "text": " ---",
+        "scope": "punctuation.definition.section.end.grpctestify"
+      }
+    ]
+  },
+  "addressValid": {
+    "line": "localhost:4770",
+    "captures": [
+      {
+        "index": 0,
+        "text": "localhost:4770",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "localhost:4770",
+        "scope": "string.address.valid.grpctestify"
+      }
+    ]
+  },
+  "endpointValid": {
+    "line": "helloworld.Greeter/SayHello",
+    "captures": [
+      {
+        "index": 0,
+        "text": "helloworld.Greeter/SayHello",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "helloworld.",
+        "scope": "entity.package.grpctestify"
+      },
+      {
+        "index": 2,
+        "text": "Greeter",
+        "scope": "entity.service.grpctestify"
+      },
+      {
+        "index": 3,
+        "text": "SayHello",
+        "scope": "entity.method.grpctestify"
+      }
+    ]
+  },
+  "requestHeader": {
+    "line": "authorization: Bearer token",
+    "captures": [
+      {
+        "index": 0,
+        "text": "authorization: Bearer token",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "authorization",
+        "scope": "entity.header.key.grpctestify"
+      },
+      {
+        "index": 2,
+        "text": ": ",
+        "scope": "punctuation.separator.key-value.grpctestify"
+      },
+      {
+        "index": 3,
+        "text": "Bearer token",
+        "scope": "entity.header.value.grpctestify"
+      }
+    ]
+  },
+  "assertPlugin": {
+    "line": "@json_schema(\"schema.json\")",
+    "captures": [
+      {
+        "index": 0,
+        "text": "@json_schema(",
+        "scope": "entity.name.function.plugin.grpctestify"
+      },
+      {
+        "index": 1,
+        "text": "json_schema",
+        "scope": null
+      }
+    ]
+  },
+  "assertOperator": {
+    "line": "contains",
+    "captures": [
+      {
+        "index": 0,
+        "text": "contains",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "contains",
+        "scope": null
+      }
+    ]
+  },
+  "extractPair": {
+    "line": "user_id: .response.user.id",
+    "captures": [
+      {
+        "index": 0,
+        "text": "user_id: .response.user.id",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "user_id",
+        "scope": "variable.other.extracted-name.grpctestify"
+      },
+      {
+        "index": 2,
+        "text": ": ",
+        "scope": "punctuation.separator.key-value.grpctestify"
+      },
+      {
+        "index": 3,
+        "text": ".response.user.id",
+        "scope": "meta.jq.expression.grpctestify"
+      }
+    ]
+  },
+  "tlsPath": {
+    "line": "ca_cert: ./ca.pem",
+    "captures": [
+      {
+        "index": 0,
+        "text": "ca_cert: ./ca.pem",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "ca_cert",
+        "scope": "support.type.key.tls.grpctestify"
+      },
+      {
+        "index": 2,
+        "text": ": ",
+        "scope": "punctuation.separator.key-value.grpctestify"
+      },
+      {
+        "index": 3,
+        "text": "./ca.pem",
+        "scope": "string.unquoted.value.grpctestify"
+      }
+    ]
+  },
+  "protoPath": {
+    "line": "descriptor: ./service.desc",
+    "captures": [
+      {
+        "index": 0,
+        "text": "descriptor: ./service.desc",
+        "scope": null
+      },
+      {
+        "index": 1,
+        "text": "descriptor",
+        "scope": "support.type.key.proto.grpctestify"
+      },
+      {
+        "index": 2,
+        "text": ": ",
+        "scope": "punctuation.separator.key-value.grpctestify"
+      },
+      {
+        "index": 3,
+        "text": "./service.desc",
+        "scope": "string.unquoted.value.grpctestify"
+      }
+    ]
+  }
+}

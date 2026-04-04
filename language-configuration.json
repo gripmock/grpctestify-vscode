@@ -8,11 +8,26 @@
     ["(", ")"]
   ],
   "autoClosingPairs": [
-    { "open": "{", "close": "}" },
-    { "open": "[", "close": "]" },
-    { "open": "(", "close": ")" },
-    { "open": "'", "close": "'" },
-    { "open": "\"", "close": "\"" }
+    {
+      "open": "{",
+      "close": "}"
+    },
+    {
+      "open": "[",
+      "close": "]"
+    },
+    {
+      "open": "(",
+      "close": ")"
+    },
+    {
+      "open": "'",
+      "close": "'"
+    },
+    {
+      "open": "\"",
+      "close": "\""
+    }
   ],
   "surroundingPairs": [
     ["{", "}"],
@@ -27,8 +42,8 @@
   },
   "folding": {
     "markers": {
-      "start": "^\\s*---\\s*(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR)\\s*---",
-      "end": "(?=^---\\s*(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR)\\s*---|\\z)"
+      "start": "^\\s*---\\s*(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)\\b.*---\\s*$",
+      "end": "(?=^---\\s*(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)\\b.*---\\s*$|\\z)"
     }
   }
 }

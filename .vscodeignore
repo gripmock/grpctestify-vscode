@@ -1,0 +1,14 @@
+.github/**
+.vscode-test/**
+.vscode-test-workspace/**
+src/**
+tests/**
+scripts/**
+grammar/**
+docs/**
+PLAN.md
+eslint.config.mjs
+tsconfig.json
+*.ts
+*.mjs
+package-lock.json
