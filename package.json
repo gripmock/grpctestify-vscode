@@ -70,6 +70,11 @@
     "deps:licenses": "license-checker-rseidelsohn --summary --production",
     "deps:unused": "knip --production --dependencies"
   },
+  "knip": {
+    "ignoreDependencies": [
+      "vscode-languageclient"
+    ]
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@types/mocha": "^10.0.10",
