@@ -1,0 +1,17 @@
+--- ADDRESS ---
+localhost:4770
+
+--- ENDPOINT ---
+helloworld.Greeter/SayHello
+
+--- REQUEST ---
+{
+  // json5 style comment
+  name: 'World',
+}
+
+--- RESPONSE ---
+{
+  # hash-style comment
+  message: 'Hello',
+}

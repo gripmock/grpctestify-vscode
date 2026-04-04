@@ -6,7 +6,7 @@ const grammarPath = new URL(
   import.meta.url,
 );
 const fixturePath = new URL(
-  "../../grpctestify-rust/tests/data/gctf/json5_support.gctf",
+  "./fixtures/json5_support.gctf",
   import.meta.url,
 );
 
