@@ -1,258 +1,620 @@
 {
-	"name": "grpctestify",
-	"displayName": "gRPCTestify",
-	"description": "Syntax highlighting and smart autocompletion for gRPC test files (.gctf)",
-	"version": "0.0.5",
-	"author": "Babichev Maksim <info@babichev.net>",
-	"license": "MIT",
-	"publisher": "gripmock",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/gripmock/grpctestify-vscode.git"
-	},
-	"bugs": {
-		"url": "https://github.com/gripmock/grpctestify-vscode/issues"
-	},
-	"homepage": "https://github.com/gripmock/grpctestify-vscode#readme",
-	"engines": {
-		"vscode": "^1.85.0"
-	},
-	"main": "./out/extension.js",
-	"activationEvents": [
-	  "onLanguage:grpctestify",
-	  "onCommand:grpctestify.runCode"
-	],
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./"
-	},
-	"devDependencies": {
-		"@types/mocha": "^10.0.10",
-		"@types/node": "^22.14.0",
-		"@types/vscode": "^1.85.0",
-		"@vscode/test-electron": "^2.4.1",
-		"mocha": "^10.2.0",
-		"typescript": "^5.3.3",
-		"vsce": "^1.97.0"
-	},
-	"contributes": {
-		"languages": [
-			{
-				"id": "grpctestify",
-				"aliases": [
-					"gRPCTestify"
-				],
-				"extensions": [
-					".gctf"
-				],
-				"configuration": "./language-configuration.json",
-				"icon": {
-					"light": "icons/icon.svg",
-					"dark": "icons/icon.svg"
-				}
-			}
-		],
-		"grammars": [
-			{
-				"language": "grpctestify",
-				"scopeName": "source.grpctestify",
-				"path": "./syntaxes/grpctestify.tmLanguage.json"
-			},
-			{
-				"scopeName": "source.json",
-				"path": "./syntaxes/json.tmLanguage.json"
-			}
-		],
-		"snippets": [
-			{
-				"language": "grpctestify",
-				"path": "./snippets/grpctestify.code-snippets"
-			}
-		],
-		"colors": [
-			{
-				"id": "keyword.section.name.grpctestify",
-				"description": "Section keywords",
-				"defaults": {
-					"dark": "#569CD6",
-					"light": "#0000FF",
-					"highContrast": "#0000FF"
-				}
-			},
-			{
-				"id": "invalid.illegal.address.grpctestify",
-				"description": "Invalid address",
-				"defaults": {
-					"dark": "#FF0000",
-					"light": "#FF0000",
-					"highContrast": "#FF0000"
-				}
-			},
-			{
-				"id": "invalid.illegal.endpoint.grpctestify",
-				"description": "Invalid endpoint",
-				"defaults": {
-					"dark": "#FF0000",
-					"light": "#FF0000",
-					"highContrast": "#FF0000"
-				}
-			},
-			{
-				"id": "entity.header.key.grpctestify",
-				"description": "Header key",
-				"defaults": {
-					"dark": "#D4A017",
-					"light": "#9C7526",
-					"highContrast": "#9C7526"
-				}
-			},
-			{
-				"id": "entity.header.value.grpctestify",
-				"description": "Header value",
-				"defaults": {
-					"dark": "#9370DB",
-					"light": "#8A2BE2",
-					"highContrast": "#8A2BE2"
-				}
-			},
-			{
-				"id": "string.address.valid.grpctestify",
-				"description": "Valid address",
-				"defaults": {
-					"dark": "#00f0b8",
-					"light": "#00f0bc",
-					"highContrast": "#00f068"
-				}
-			},
-			{
-				"id": "entity.package.grpctestify",
-				"description": "Package name in ENDPOINT",
-				"defaults": {
-					"dark": "#D4A017",
-					"light": "#9C7526",
-					"highContrast": "#9C7526"
-				}
-			},
-			{
-				"id": "entity.service.grpctestify",
-				"description": "Service name in ENDPOINT",
-				"defaults": {
-					"dark": "#3CB371",
-					"light": "#2E8B57",
-					"highContrast": "#2E8B57"
-				}
-			},
-			{
-				"id": "entity.method.grpctestify",
-				"description": "Method name in ENDPOINT",
-				"defaults": {
-					"dark": "#9370DB",
-					"light": "#8A2BE2",
-					"highContrast": "#8A2BE2"
-				}
-			},
-			{
-				"id": "invalid.illegal.both.grpctestify",
-				"description": "Both RESPONSE and ERROR sections filled",
-				"defaults": {
-					"dark": "#FF0000",
-					"light": "#FF0000",
-					"highContrast": "#FF0000"
-				}
-			}
-		],
-		"configurationDefaults": {
-			"editor.tokenColorCustomizations": {
-				"textMateRules": [
-					{
-						"scope": "keyword.section.name.grpctestify",
-						"settings": {
-							"foreground": "#569CD6"
-						}
-					},
-					{
-						"scope": "invalid.illegal.address.grpctestify",
-						"settings": {
-							"foreground": "#FF0000"
-						}
-					},
-					{
-						"scope": "invalid.illegal.endpoint.grpctestify",
-						"settings": {
-							"foreground": "#FF0000"
-						}
-					},
-					{
-						"scope": "string.address.valid.grpctestify",
-						"settings": {
-							"foreground": "#00f0b8"
-						}
-					},
-					{
-						"scope": "entity.header.key.grpctestify",
-						"settings": {
-							"foreground": "#D4A017"
-						}
-					},
-					{
-						"scope": "entity.header.value.grpctestify",
-						"settings": {
-							"foreground": "#9370DB"
-						}
-					},
-					{
-						"scope": "entity.package.grpctestify",
-						"settings": {
-							"foreground": "#D4A017"
-						}
-					},
-					{
-						"scope": "entity.service.grpctestify",
-						"settings": {
-							"foreground": "#3CB371"
-						}
-					},
-					{
-						"scope": "entity.method.grpctestify",
-						"settings": {
-							"foreground": "#9370DB"
-						}
-					},
-					{
-						"scope": "invalid.illegal.both.grpctestify",
-						"settings": {
-							"foreground": "#FF0000"
-						}
-					}
-				]
-			}
-		},
-		"configuration": {
-			"properties": {
-				"grpctestify.enableAutocomplete": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable smart autocomplete suggestions"
-				},
-				"grpctestify.strictSectionFormatting": {
-					"type": "boolean",
-					"default": true,
-					"description": "Ensure strict section formatting"
-				},
-				"code-runner.executorMap.grpctestify": {
-					"type": "string",
-					"default": "grpctestify --no-color",
-					"description": "Command to execute gRPCTestify files"
-				}
-			}
-		},
-		"keybindings": [
-			{
-				"command": "editor.action.triggerSuggest",
-				"key": "ctrl+space",
-				"when": "editorTextFocus && editorLangId == grpctestify"
-			}
-		]
-	}
+  "name": "grpctestify",
+  "displayName": "gRPCTestify",
+  "description": "Rust-native VS Code tooling for .gctf: Testing API, check/fmt, inspect/explain, and LSP-powered authoring.",
+  "version": "0.1.0",
+  "keywords": [
+    "grpc",
+    "testing",
+    "gctf",
+    "grpctestify",
+    "lsp",
+    "test-explorer"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Testing",
+    "Linters",
+    "Formatters"
+  ],
+  "author": "Babichev Maksim <info@babichev.net>",
+  "license": "MIT",
+  "publisher": "gripmock",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gripmock/grpctestify-vscode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gripmock/grpctestify-vscode/issues"
+  },
+  "homepage": "https://github.com/gripmock/grpctestify-vscode#readme",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onLanguage:grpctestify",
+    "onCommand:grpctestify.run",
+    "onCommand:grpctestify.check",
+    "onCommand:grpctestify.fmt",
+    "onCommand:grpctestify.inspect",
+    "onCommand:grpctestify.explain",
+    "onCommand:grpctestify.reflect",
+    "onCommand:grpctestify.restartLsp",
+    "onCommand:grpctestify.testing.refresh",
+    "onCommand:grpctestify.tree.refresh",
+    "onCommand:grpctestify.tree.runItem",
+    "onCommand:grpctestify.tree.explainItem",
+    "onCommand:grpctestify.tree.inspectItem",
+    "onCommand:grpctestify.openSample",
+    "onCommand:grpctestify.focusTesting",
+    "onView:grpctestifyExplorer",
+    "onCommand:grpctestify.activationDiagnostics",
+    "onCommand:grpctestify.health"
+  ],
+  "scripts": {
+    "build": "tsc -p ./",
+    "typecheck": "tsc -p ./ --noEmit",
+    "dev": "tsc -watch -p ./",
+    "lint": "eslint \"src/**/*.ts\" \"scripts/**/*.mjs\" \"tests/**/*.mjs\"",
+    "fmt": "prettier --write .",
+    "fmt:check": "prettier --check .",
+    "grammar:sync": "node ./scripts/sync-grammar-from-spec.mjs",
+    "test:integration": "node ./scripts/test-integration.mjs",
+    "test:e2e": "node ./out/test/runTest.js",
+    "test:e2e:ci": "node ./scripts/run-extension-host-ci.mjs",
+    "test:gripmock": "node ./tests/gripmock-scenarios.mjs",
+    "test": "node ./scripts/test-all.mjs",
+    "package": "tsc -p ./ && npx vsce package",
+    "deps:audit": "npm audit --omit=dev",
+    "deps:licenses": "license-checker-rseidelsohn --summary --production",
+    "deps:unused": "knip --production --dependencies"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.19.17",
+    "@types/vscode": "^1.100.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^9.39.4",
+    "knip": "^5.88.1",
+    "license-checker-rseidelsohn": "^4.4.2",
+    "mocha": "^10.2.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.58.0"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "grpctestify",
+        "aliases": [
+          "gRPCTestify"
+        ],
+        "extensions": [
+          ".gctf"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "icons/icon.svg",
+          "dark": "icons/icon.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "grpctestify",
+        "scopeName": "source.grpctestify",
+        "path": "./syntaxes/grpctestify.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "grpctestify",
+        "path": "./snippets/grpctestify.code-snippets"
+      }
+    ],
+    "colors": [
+      {
+        "id": "keyword.section.name.grpctestify",
+        "description": "Section keywords",
+        "defaults": {
+          "dark": "#569CD6",
+          "light": "#0000FF",
+          "highContrast": "#0000FF"
+        }
+      },
+      {
+        "id": "invalid.illegal.address.grpctestify",
+        "description": "Invalid address",
+        "defaults": {
+          "dark": "#FF0000",
+          "light": "#FF0000",
+          "highContrast": "#FF0000"
+        }
+      },
+      {
+        "id": "invalid.illegal.endpoint.grpctestify",
+        "description": "Invalid endpoint",
+        "defaults": {
+          "dark": "#FF0000",
+          "light": "#FF0000",
+          "highContrast": "#FF0000"
+        }
+      },
+      {
+        "id": "entity.header.key.grpctestify",
+        "description": "Header key",
+        "defaults": {
+          "dark": "#D4A017",
+          "light": "#9C7526",
+          "highContrast": "#9C7526"
+        }
+      },
+      {
+        "id": "entity.header.value.grpctestify",
+        "description": "Header value",
+        "defaults": {
+          "dark": "#9370DB",
+          "light": "#8A2BE2",
+          "highContrast": "#8A2BE2"
+        }
+      },
+      {
+        "id": "string.address.valid.grpctestify",
+        "description": "Valid address",
+        "defaults": {
+          "dark": "#00f0b8",
+          "light": "#00f0bc",
+          "highContrast": "#00f068"
+        }
+      },
+      {
+        "id": "entity.package.grpctestify",
+        "description": "Package name in ENDPOINT",
+        "defaults": {
+          "dark": "#D4A017",
+          "light": "#9C7526",
+          "highContrast": "#9C7526"
+        }
+      },
+      {
+        "id": "entity.service.grpctestify",
+        "description": "Service name in ENDPOINT",
+        "defaults": {
+          "dark": "#3CB371",
+          "light": "#2E8B57",
+          "highContrast": "#2E8B57"
+        }
+      },
+      {
+        "id": "entity.method.grpctestify",
+        "description": "Method name in ENDPOINT",
+        "defaults": {
+          "dark": "#9370DB",
+          "light": "#8A2BE2",
+          "highContrast": "#8A2BE2"
+        }
+      },
+      {
+        "id": "invalid.illegal.both.grpctestify",
+        "description": "Both RESPONSE and ERROR sections filled",
+        "defaults": {
+          "dark": "#FF0000",
+          "light": "#FF0000",
+          "highContrast": "#FF0000"
+        }
+      }
+    ],
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": "keyword.section.name.grpctestify",
+            "settings": {
+              "foreground": "#569CD6"
+            }
+          },
+          {
+            "scope": "invalid.illegal.address.grpctestify",
+            "settings": {
+              "foreground": "#FF0000"
+            }
+          },
+          {
+            "scope": "invalid.illegal.endpoint.grpctestify",
+            "settings": {
+              "foreground": "#FF0000"
+            }
+          },
+          {
+            "scope": "string.address.valid.grpctestify",
+            "settings": {
+              "foreground": "#00f0b8"
+            }
+          },
+          {
+            "scope": "entity.header.key.grpctestify",
+            "settings": {
+              "foreground": "#D4A017"
+            }
+          },
+          {
+            "scope": "entity.header.value.grpctestify",
+            "settings": {
+              "foreground": "#9370DB"
+            }
+          },
+          {
+            "scope": "entity.package.grpctestify",
+            "settings": {
+              "foreground": "#D4A017"
+            }
+          },
+          {
+            "scope": "entity.service.grpctestify",
+            "settings": {
+              "foreground": "#3CB371"
+            }
+          },
+          {
+            "scope": "entity.method.grpctestify",
+            "settings": {
+              "foreground": "#9370DB"
+            }
+          },
+          {
+            "scope": "invalid.illegal.both.grpctestify",
+            "settings": {
+              "foreground": "#FF0000"
+            }
+          }
+        ]
+      },
+      "[grpctestify]": {
+        "editor.semanticHighlighting.enabled": false,
+        "editor.suggestOnTriggerCharacters": true,
+        "editor.quickSuggestions": {
+          "other": true,
+          "comments": false,
+          "strings": true
+        }
+      }
+    },
+    "configuration": {
+      "properties": {
+        "grpctestify.binary.path": {
+          "type": "string",
+          "default": "grpctestify",
+          "description": "Path to grpctestify binary"
+        },
+        "grpctestify.lsp.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable grpctestify LSP integration"
+        },
+        "grpctestify.testing.autoDiscover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically discover .gctf tests in workspace"
+        },
+        "grpctestify.testing.debugMode": {
+          "type": "string",
+          "default": "stream",
+          "enum": [
+            "stream",
+            "native"
+          ],
+          "description": "Debug profile mode for gRPCTestify tests"
+        },
+        "grpctestify.testing.nativeDebugBridge": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable experimental native debug bridge for gRPCTestify tests"
+        },
+        "grpctestify.defaultArgs.run": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Default additional CLI args for run commands"
+        },
+        "grpctestify.defaultArgs.check": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Default additional CLI args for check commands"
+        },
+        "grpctestify.formatOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically format .gctf files on save"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "grpctestify.run",
+        "title": "gRPCTestify: Run",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.check",
+        "title": "gRPCTestify: Check",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.fmt",
+        "title": "gRPCTestify: Format Current File",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.inspect",
+        "title": "gRPCTestify: Inspect Current File",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.explain",
+        "title": "gRPCTestify: Explain Current File",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.reflect",
+        "title": "gRPCTestify: Reflect",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.restartLsp",
+        "title": "gRPCTestify: Restart LSP",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.testing.refresh",
+        "title": "gRPCTestify: Refresh Tests",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.tree.refresh",
+        "title": "gRPCTestify: Refresh Tree",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.tree.runItem",
+        "title": "gRPCTestify: Run Item",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.tree.explainItem",
+        "title": "gRPCTestify: Explain Item",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.tree.inspectItem",
+        "title": "gRPCTestify: Inspect Item",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.openSample",
+        "title": "gRPCTestify: Open Sample .gctf",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.focusTesting",
+        "title": "gRPCTestify: Focus Testing View",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.health",
+        "title": "gRPCTestify: Health Check",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.activationDiagnostics",
+        "title": "gRPCTestify: Activation Diagnostics",
+        "category": "gRPCTestify"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "grpctestify",
+          "title": "gRPCTestify",
+          "icon": "icons/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "grpctestify": [
+        {
+          "id": "grpctestifyExplorer",
+          "name": "Tests",
+          "contextualTitle": "gRPCTestify"
+        }
+      ]
+    },
+    "menus": {
+      "editor/title": [
+        {
+          "command": "grpctestify.run",
+          "when": "resourceExtname == .gctf",
+          "group": "navigation@1"
+        },
+        {
+          "command": "grpctestify.check",
+          "when": "resourceExtname == .gctf",
+          "group": "navigation@2"
+        },
+        {
+          "command": "grpctestify.fmt",
+          "when": "resourceExtname == .gctf",
+          "group": "navigation@3"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "grpctestify.tree.refresh",
+          "when": "view == grpctestifyExplorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "grpctestify.tree.runItem",
+          "when": "view == grpctestifyExplorer && viewItem == gctfFile",
+          "group": "inline"
+        },
+        {
+          "command": "grpctestify.tree.explainItem",
+          "when": "view == grpctestifyExplorer && viewItem == gctfFile",
+          "group": "inline"
+        },
+        {
+          "command": "grpctestify.tree.inspectItem",
+          "when": "view == grpctestifyExplorer && viewItem == gctfFile",
+          "group": "inline"
+        }
+      ]
+    },
+    "taskDefinitions": [
+      {
+        "type": "grpctestify",
+        "required": [
+          "task",
+          "folder"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "enum": [
+              "run",
+              "check",
+              "fmt"
+            ]
+          },
+          "folder": {
+            "type": "string"
+          }
+        }
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "grpctestify-generic",
+        "owner": "grpctestify",
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "pattern": {
+          "regexp": "^(.+):(\\d+):\\s+\\[([^\\]]+)\\]\\s+(.+)$",
+          "file": 1,
+          "line": 2,
+          "code": 3,
+          "message": 4
+        }
+      },
+      {
+        "name": "grpctestify-check",
+        "owner": "grpctestify",
+        "fileLocation": [
+          "autoDetect",
+          "${workspaceFolder}"
+        ],
+        "severity": "error",
+        "pattern": {
+          "regexp": "^(.+):(\\d+):\\s+\\[([^\\]]+)\\]\\s+(.+)$",
+          "file": 1,
+          "line": 2,
+          "code": 3,
+          "message": 4
+        }
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "grpctestify.walkthrough",
+        "title": "Get Started with gRPCTestify",
+        "description": "Set up binary, author tests, run check/fmt, and execute tests from Testing view.",
+        "steps": [
+          {
+            "id": "grpctestify.walkthrough.binary",
+            "title": "Verify binary detection",
+            "description": "Run health check to confirm `grpctestify` is available.",
+            "media": {
+              "image": "icons/icon.svg",
+              "altText": "Health check"
+            },
+            "completionEvents": [
+              "onCommand:grpctestify.health"
+            ]
+          },
+          {
+            "id": "grpctestify.walkthrough.sample",
+            "title": "Open a sample .gctf",
+            "description": "Generate a sample test file in an editor tab.",
+            "media": {
+              "image": "icons/icon.svg",
+              "altText": "Sample"
+            },
+            "completionEvents": [
+              "onCommand:grpctestify.openSample"
+            ]
+          },
+          {
+            "id": "grpctestify.walkthrough.checkfmt",
+            "title": "Run check and format",
+            "description": "Validate and format your gRPC test file.",
+            "media": {
+              "image": "icons/icon.svg",
+              "altText": "Check and format"
+            },
+            "completionEvents": [
+              "onCommand:grpctestify.check",
+              "onCommand:grpctestify.fmt"
+            ]
+          },
+          {
+            "id": "grpctestify.walkthrough.testing",
+            "title": "Open Testing view and run",
+            "description": "Focus Testing view and execute discovered tests.",
+            "media": {
+              "image": "icons/icon.svg",
+              "altText": "Testing view"
+            },
+            "completionEvents": [
+              "onCommand:grpctestify.focusTesting",
+              "onCommand:testing.runAll"
+            ]
+          },
+          {
+            "id": "grpctestify.walkthrough.inspectexplain",
+            "title": "Use inspect and explain",
+            "description": "Inspect AST/semantics and explain execution workflow.",
+            "media": {
+              "image": "icons/icon.svg",
+              "altText": "Inspect and explain"
+            },
+            "completionEvents": [
+              "onCommand:grpctestify.inspect",
+              "onCommand:grpctestify.explain"
+            ]
+          }
+        ]
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "editor.action.triggerSuggest",
+        "key": "ctrl+space",
+        "when": "editorTextFocus && editorLangId == grpctestify"
+      }
+    ]
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
 }

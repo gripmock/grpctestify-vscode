@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "sections": {
+    "primary": [
+      "ADDRESS",
+      "ENDPOINT",
+      "REQUEST",
+      "RESPONSE",
+      "ERROR",
+      "REQUEST_HEADERS",
+      "ASSERTS",
+      "EXTRACT",
+      "TLS",
+      "PROTO",
+      "OPTIONS"
+    ],
+    "deprecated": ["HEADERS"]
+  },
+  "inlineOptionsSections": ["RESPONSE", "ERROR"],
+  "pluginPrefix": "@",
+  "pluginTokenFamilies": ["assertion", "header", "validation"],
+  "lexicalPrimitives": {
+    "lineComments": ["#", "//"],
+    "string": "double-quoted",
+    "numbers": "json-compatible"
+  }
+}
