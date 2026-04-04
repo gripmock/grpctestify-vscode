@@ -1,7 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { join, extname } from "node:path";
 
-const rustFixturesRoot = new URL("../../grpctestify-rust", import.meta.url);
+const localFixturesRoot = new URL("./fixtures", import.meta.url);
 const specPath = new URL(
   "../grammar/spec/gctf-language-spec.json",
   import.meta.url,
@@ -13,11 +14,16 @@ const textMatePath = new URL(
 
 async function collectFiles(rootPath, extension) {
   const out = [];
+  const ignoredDirs = new Set([".git", "node_modules", ".vscode-test", "out"]);
+
   async function walk(dir) {
     const entries = await readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
       const absolute = join(dir, entry.name);
       if (entry.isDirectory()) {
+        if (ignoredDirs.has(entry.name)) {
+          continue;
+        }
         await walk(absolute);
       } else if (entry.isFile() && extname(entry.name) === extension) {
         out.push(absolute);
@@ -45,9 +51,13 @@ async function main() {
   ]);
   const sectionRegex = new RegExp(textMate.repository["section-header"].match);
 
-  const gctfFiles = await collectFiles(rustFixturesRoot.pathname, ".gctf");
+  const localFixturesRootPath = fileURLToPath(localFixturesRoot);
+
+  const gctfFiles = await collectFiles(localFixturesRootPath, ".gctf");
   if (gctfFiles.length === 0) {
-    throw new Error("No .gctf fixtures found for grammar compatibility test");
+    throw new Error(
+      "No .gctf fixtures found for grammar compatibility test in tests/fixtures",
+    );
   }
 
   const errors = [];
