@@ -22,7 +22,7 @@
       ]
     },
     "section-header": {
-      "match": "^(---\\s+)(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)(?:\\s+[^-][^-]*)?(\\s+---)(.*)?$",
+      "match": "^(---\\s+)(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS|META)(?:\\s+[^-][^-]*)?(\\s+---)(.*)?$",
       "captures": {
         "1": {
           "name": "punctuation.definition.section.begin.grpctestify"

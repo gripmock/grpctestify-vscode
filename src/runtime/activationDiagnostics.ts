@@ -26,4 +26,10 @@ export interface ActivationDiagnosticsSnapshot {
       skipped: number;
     };
   };
+  binary?: {
+    version: string;
+    resolvedPath: string;
+    meetsMinVersion: boolean;
+    minRequired: string;
+  };
 }

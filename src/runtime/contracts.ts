@@ -16,6 +16,7 @@ export interface ListTestItem {
   uri: string;
   children: ListTestItem[];
   range?: CliRange;
+  tags?: string[];
 }
 
 export interface ListReport {
@@ -163,6 +164,7 @@ function decodeListTestItem(value: unknown): ListTestItem {
     uri,
     children,
     range: item.range ? decodeRange(item.range) : undefined,
+    tags: Array.isArray(item.tags) ? item.tags.filter(t => typeof t === "string") : undefined,
   };
 }
 
@@ -352,9 +354,35 @@ export function decodeExplainReport(payload: unknown): ExplainReport {
   }
 
   const diagnostics = report.diagnostics;
+  const executionPlan = asRecord(report.execution_plan);
+  const optimizedPlan = asRecord(report.optimized_plan);
+  const semanticPlan = asRecord(report.semantic_plan);
+  const optimizationTrace = report.optimization_trace;
+
+  const fallbackSummary =
+    asRecord(executionPlan?.summary) ??
+    asRecord(optimizedPlan?.summary) ??
+    asRecord(semanticPlan?.summary);
+
+  const fallbackDetails: Record<string, unknown> = {};
+  if (executionPlan) {
+    fallbackDetails.execution_plan = executionPlan;
+  }
+  if (optimizedPlan) {
+    fallbackDetails.optimized_plan = optimizedPlan;
+  }
+  if (semanticPlan) {
+    fallbackDetails.semantic_plan = semanticPlan;
+  }
+  if (Array.isArray(optimizationTrace)) {
+    fallbackDetails.optimization_trace = optimizationTrace;
+  }
+
   return {
-    summary: asRecord(report.summary),
-    details: asRecord(report.details),
+    summary: asRecord(report.summary) ?? fallbackSummary,
+    details:
+      asRecord(report.details) ??
+      (Object.keys(fallbackDetails).length > 0 ? fallbackDetails : undefined),
     diagnostics: Array.isArray(diagnostics)
       ? diagnostics.map(decodeCheckDiagnostic)
       : undefined,

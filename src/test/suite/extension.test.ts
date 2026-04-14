@@ -173,8 +173,12 @@ suite("gRPCTestify extension", () => {
     const extension = vscode.extensions.getExtension("gripmock.grpctestify");
     assert.ok(extension, "Extension gripmock.grpctestify should be available");
 
-    const menuEntries = extension?.packageJSON?.contributes?.menus?.["editor/title"];
-    assert.ok(Array.isArray(menuEntries), "editor/title menu entries should exist");
+    const menuEntries =
+      extension?.packageJSON?.contributes?.menus?.["editor/title"];
+    assert.ok(
+      Array.isArray(menuEntries),
+      "editor/title menu entries should exist",
+    );
 
     const commands = new Map(
       menuEntries.map((entry: { command: string; when?: string }) => [
@@ -188,7 +192,9 @@ suite("gRPCTestify extension", () => {
   });
 
   test("check command returns non-empty notification text and execution logs", async () => {
-    const tempDir = await mkdtemp(path.join(os.tmpdir(), "grpctestify-check-msg-"));
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "grpctestify-check-msg-"),
+    );
     const filePath = path.join(tempDir, "invalid.gctf");
     const content = [
       "--- ADDRESS ---",
@@ -206,7 +212,9 @@ suite("gRPCTestify extension", () => {
     ].join("\n");
 
     await writeFile(filePath, content, "utf8");
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
     await vscode.window.showTextDocument(doc, { preview: false });
 
     const result = (await vscode.commands.executeCommand(
@@ -491,8 +499,12 @@ suite("gRPCTestify extension", () => {
     ].join("\n");
     await writeFile(filePath, invalid, "utf8");
 
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
-    const editor = await vscode.window.showTextDocument(doc, { preview: false });
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
+    const editor = await vscode.window.showTextDocument(doc, {
+      preview: false,
+    });
 
     const waitForDiagnostics = async (expectedAtLeast: number) => {
       const deadline = Date.now() + 7000;
@@ -510,7 +522,10 @@ suite("gRPCTestify extension", () => {
     };
 
     const initialDiagnostics = await waitForDiagnostics(1);
-    assert.ok(initialDiagnostics.length > 0, "Expected live diagnostics on open");
+    assert.ok(
+      initialDiagnostics.length > 0,
+      "Expected live diagnostics on open",
+    );
 
     const fixed = [
       "--- ADDRESS ---",
@@ -552,7 +567,11 @@ suite("gRPCTestify extension", () => {
       }
       await new Promise((resolve) => setTimeout(resolve, 120));
     }
-    assert.equal(finalDiagnostics.length, 0, "Expected live diagnostics to clear");
+    assert.equal(
+      finalDiagnostics.length,
+      0,
+      "Expected live diagnostics to clear",
+    );
   });
 
   test("formats gctf with path-sensitive PROTO/TLS sections", async () => {
@@ -693,7 +712,9 @@ suite("gRPCTestify extension", () => {
     const filePath = path.join(tempDir, "completion.gctf");
     await writeFile(filePath, "--- ", "utf8");
 
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
     await vscode.window.showTextDocument(doc, { preview: false });
 
     const completions =
@@ -703,7 +724,10 @@ suite("gRPCTestify extension", () => {
         new vscode.Position(0, 4),
       )) ?? new vscode.CompletionList([]);
 
-    assert.ok(completions.items.length > 0, "Expected non-empty completion list");
+    assert.ok(
+      completions.items.length > 0,
+      "Expected non-empty completion list",
+    );
     const labels = completions.items.map((item) =>
       typeof item.label === "string" ? item.label : item.label.label,
     );
@@ -713,7 +737,8 @@ suite("gRPCTestify extension", () => {
     );
 
     const addressItem = completions.items.find((item) => {
-      const label = typeof item.label === "string" ? item.label : item.label.label;
+      const label =
+        typeof item.label === "string" ? item.label : item.label.label;
       return label.includes("ADDRESS");
     });
     assert.ok(addressItem, "Expected ADDRESS completion item");
@@ -727,6 +752,225 @@ suite("gRPCTestify extension", () => {
     assert.ok(
       snippetValue.startsWith("--- ADDRESS ---"),
       "Expected normalized section snippet delimiter",
+    );
+  });
+
+  test("provides META key suggestions", async () => {
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "grpctestify-ext-meta-completion-"),
+    );
+    const filePath = path.join(tempDir, "meta-completion.gctf");
+    await writeFile(filePath, "--- META ---\nna", "utf8");
+
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
+    await vscode.window.showTextDocument(doc, { preview: false });
+
+    const completions =
+      (await vscode.commands.executeCommand<vscode.CompletionList>(
+        "vscode.executeCompletionItemProvider",
+        doc.uri,
+        new vscode.Position(1, 2),
+      )) ?? new vscode.CompletionList([]);
+
+    const labels = completions.items.map((item) =>
+      typeof item.label === "string" ? item.label : item.label.label,
+    );
+    assert.ok(labels.includes("name"), "Expected META completion 'name'");
+    assert.ok(labels.includes("summary"), "Expected META completion 'summary'");
+    assert.ok(labels.includes("tags"), "Expected META completion 'tags'");
+    assert.ok(labels.includes("owner"), "Expected META completion 'owner'");
+    assert.ok(labels.includes("links"), "Expected META completion 'links'");
+  });
+
+  test("provides ASSERTS plugin completions", async () => {
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "grpctestify-ext-asserts-completion-"),
+    );
+    const filePath = path.join(tempDir, "asserts-completion.gctf");
+    const content = [
+      "--- ADDRESS ---",
+      "localhost:4770",
+      "",
+      "--- ENDPOINT ---",
+      "helloworld.Greeter/SayHello",
+      "",
+      "--- REQUEST ---",
+      '{"name":"World"}',
+      "",
+      "--- RESPONSE ---",
+      '{"message":"Hello"}',
+      "",
+      "--- ASSERTS ---",
+      "@",
+    ].join("\n");
+    await writeFile(filePath, content, "utf8");
+
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
+    await vscode.window.showTextDocument(doc, { preview: false });
+
+    const completions =
+      (await vscode.commands.executeCommand<vscode.CompletionList>(
+        "vscode.executeCompletionItemProvider",
+        doc.uri,
+        new vscode.Position(doc.lineCount - 1, 1),
+      )) ?? new vscode.CompletionList([]);
+
+    const labels = completions.items.map((item) =>
+      typeof item.label === "string" ? item.label : item.label.label,
+    );
+    assert.ok(
+      labels.some((l) => l.includes("@uuid")),
+      "Expected @uuid in ASSERTS completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("@len")),
+      "Expected @len in ASSERTS completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("@empty")),
+      "Expected @empty in ASSERTS completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("@has_header")),
+      "Expected @has_header in ASSERTS completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("@elapsed_ms")),
+      "Expected @elapsed_ms in ASSERTS completions",
+    );
+  });
+
+  test("provides EXTRACT variable completions", async () => {
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "grpctestify-ext-extract-completion-"),
+    );
+    const filePath = path.join(tempDir, "extract-completion.gctf");
+    const content = [
+      "--- ADDRESS ---",
+      "localhost:4770",
+      "",
+      "--- ENDPOINT ---",
+      "helloworld.Greeter/SayHello",
+      "",
+      "--- REQUEST ---",
+      '{"name":"World"}',
+      "",
+      "--- RESPONSE ---",
+      '{"message":"Hello"}',
+      "",
+      "--- EXTRACT ---",
+      "",
+    ].join("\n");
+    await writeFile(filePath, content, "utf8");
+
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
+    await vscode.window.showTextDocument(doc, { preview: false });
+
+    const completions =
+      (await vscode.commands.executeCommand<vscode.CompletionList>(
+        "vscode.executeCompletionItemProvider",
+        doc.uri,
+        new vscode.Position(doc.lineCount - 1, 0),
+      )) ?? new vscode.CompletionList([]);
+
+    const labels = completions.items.map((item) =>
+      typeof item.label === "string" ? item.label : item.label.label,
+    );
+    assert.ok(
+      labels.some((l) => l.includes("= .response")),
+      "Expected JQ path extract in completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("@header")),
+      "Expected @header extract in completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("@env")),
+      "Expected @env extract in completions",
+    );
+  });
+
+  test("provides TLS and OPTIONS key completions", async () => {
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "grpctestify-ext-keys-completion-"),
+    );
+    const filePath = path.join(tempDir, "keys-completion.gctf");
+    const content = [
+      "--- ADDRESS ---",
+      "localhost:4770",
+      "",
+      "--- TLS ---",
+      "",
+    ].join("\n");
+    await writeFile(filePath, content, "utf8");
+
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
+    await vscode.window.showTextDocument(doc, { preview: false });
+
+    const completions =
+      (await vscode.commands.executeCommand<vscode.CompletionList>(
+        "vscode.executeCompletionItemProvider",
+        doc.uri,
+        new vscode.Position(doc.lineCount - 1, 0),
+      )) ?? new vscode.CompletionList([]);
+
+    const labels = completions.items.map((item) =>
+      typeof item.label === "string" ? item.label : item.label.label,
+    );
+    assert.ok(
+      labels.some((l) => l.includes("ca_cert")),
+      "Expected ca_cert in TLS completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("server_name")),
+      "Expected server_name in TLS completions",
+    );
+    assert.ok(
+      labels.some((l) => l.includes("insecure")),
+      "Expected insecure in TLS completions",
+    );
+  });
+
+  test("provides hover docs for plugins and sections", async () => {
+    const tempDir = await mkdtemp(
+      path.join(os.tmpdir(), "grpctestify-ext-hover-"),
+    );
+    const filePath = path.join(tempDir, "hover.gctf");
+    const content = ["--- ASSERTS ---", "@uuid(.id)"].join("\n");
+    await writeFile(filePath, content, "utf8");
+
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
+    await vscode.window.showTextDocument(doc, { preview: false });
+
+    const hovers =
+      (await vscode.commands.executeCommand<vscode.Hover[]>(
+        "vscode.executeHoverProvider",
+        doc.uri,
+        new vscode.Position(1, 1),
+      )) ?? [];
+
+    assert.ok(hovers.length > 0, "Expected hover for @uuid");
+    const hoverText = hovers[0]?.contents
+      ?.map((c) => (typeof c === "string" ? c : "value" in c ? c.value : ""))
+      .join(" ");
+    assert.ok(hoverText?.includes("UUID"), "Expected UUID in @uuid hover text");
+  });
+
+  test("health check shows version status", async () => {
+    const binary = await resolveGrpctestifyBinary();
+    assert.ok(
+      typeof binary.meetsMinVersion === "boolean",
+      "Expected meetsMinVersion on binary",
     );
   });
 
@@ -750,7 +994,9 @@ suite("gRPCTestify extension", () => {
     ].join("\n");
 
     await writeFile(filePath, original, "utf8");
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(filePath),
+    );
     await vscode.window.showTextDocument(doc, { preview: false });
 
     await vscode.commands.executeCommand("grpctestify.fmt");
@@ -760,5 +1006,4 @@ suite("gRPCTestify extension", () => {
     assert.ok(formatted.includes('"name": "World"'));
     assert.ok(formatted.includes('"message": "Hello"'));
   });
-
 });

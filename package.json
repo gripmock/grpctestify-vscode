@@ -2,7 +2,7 @@
   "name": "grpctestify",
   "displayName": "gRPCTestify",
   "description": "Rust-native VS Code tooling for .gctf: Testing API, check/fmt, inspect/explain, and LSP-powered authoring.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "keywords": [
     "grpc",
     "testing",
@@ -128,6 +128,15 @@
           "dark": "#569CD6",
           "light": "#0000FF",
           "highContrast": "#0000FF"
+        }
+      },
+      {
+        "id": "keyword.control.grpctestify",
+        "description": "Inline options (with_asserts, partial, etc.)",
+        "defaults": {
+          "dark": "#DCDCAA",
+          "light": "#795E26",
+          "highContrast": "#DCDCAA"
         }
       },
       {

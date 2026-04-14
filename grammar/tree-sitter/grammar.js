@@ -19,6 +19,7 @@ module.exports = grammar({
         field(
           "name",
           choice(
+            "META",
             "ADDRESS",
             "ENDPOINT",
             "REQUEST",
@@ -33,7 +34,24 @@ module.exports = grammar({
             "HEADERS",
           ),
         ),
-        optional(seq(/[ \t]+/, field("options", /[^\n-][^\n]*/))),
+        optional(
+          seq(
+            /[ \t]+/,
+            field(
+              "options",
+              repeat1(
+                choice(
+                  token(choice("with_asserts", "partial", "unordered_arrays")),
+                  seq(
+                    token(choice("tolerance", "redact")),
+                    "=",
+                    token(/[0-9.]+|\[[^\]]*\]/),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
         /[ \t]+/,
         "---",
       ),

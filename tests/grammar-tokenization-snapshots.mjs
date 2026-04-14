@@ -55,9 +55,9 @@ async function buildSnapshot() {
     addressValid: captureResult(addressValid, "localhost:4770"),
     endpointValid: captureResult(endpointValid, "helloworld.Greeter/SayHello"),
     requestHeader: captureResult(requestHeader, "authorization: Bearer token"),
-    assertPlugin: captureResult(assertPlugin, '@json_schema("schema.json")'),
+    assertPlugin: captureResult(assertPlugin, '@uuid("550e8400-e29b-41d4-a716-446655440000")'),
     assertOperator: captureResult(assertOperator, "contains"),
-    extractPair: captureResult(extractPair, "user_id: .response.user.id"),
+    extractPair: captureResult(extractPair, "user_id = .response.user.id"),
     tlsPath: captureResult(tlsPath, "ca_cert: ./ca.pem"),
     protoPath: captureResult(protoPath, "descriptor: ./service.desc"),
   };

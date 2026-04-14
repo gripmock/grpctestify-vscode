@@ -104,11 +104,16 @@ export function applyStreamEventToTestRun(
 
     if (event.event === "test_pass") {
       run.passed(eventTestItem, durationMs);
+      const output = getOutputChannel();
+      output.appendLine(`[PASS] ${eventTestItem?.label ?? event.testId} (${durationMs}ms)`);
       return;
     }
 
     if (event.event === "test_skip") {
       run.skipped(eventTestItem);
+      const output = getOutputChannel();
+      output.appendLine(`[SKIP] ${eventTestItem?.label ?? event.testId}`);
+      output.appendLine(`         ${event.message ?? ''}`);
       return;
     }
 
@@ -117,6 +122,9 @@ export function applyStreamEventToTestRun(
       new vscode.TestMessage(event.message ?? "Test failed"),
       durationMs,
     );
+    const output = getOutputChannel();
+    output.appendLine(`[FAIL] ${eventTestItem?.label ?? event.testId}`);
+    output.appendLine(`        ${event.message ?? 'Test failed'}`);
   }
 }
 
@@ -180,6 +188,11 @@ function createTestItemRecursively(
   const testItem = controller.createTestItem(id, item.label, uri);
   if (item.range) {
     testItem.range = toVsCodeRange(item.range);
+  }
+  if (item.tags && item.tags.length > 0) {
+    testItem.tags = item.tags.map(t => new vscode.TestTag(t));
+  } else {
+    testItem.tags = [new vscode.TestTag("untagged")];
   }
 
   for (const child of item.children) {

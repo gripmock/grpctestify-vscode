@@ -13,7 +13,7 @@ import { registerRunCommand } from "./run";
 
 export interface CommandDependencies {
   restartLsp: () => Promise<void>;
-  getActivationDiagnostics: () => ActivationDiagnosticsSnapshot;
+  getActivationDiagnostics: () => Promise<ActivationDiagnosticsSnapshot>;
 }
 
 export function registerCommands(

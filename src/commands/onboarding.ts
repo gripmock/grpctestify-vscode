@@ -15,7 +15,7 @@ const SAMPLE_GCTF = [
   '  "name": "Walkthrough"',
   "}",
   "",
-  "--- RESPONSE with_asserts=true ---",
+  "--- RESPONSE with_asserts ---",
   "{",
   '  "message": "Hello Walkthrough"',
   "}",

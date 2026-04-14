@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import type * as vscode from "vscode";
 
 import { getSettings } from "../config/settings";
 import { resolveGrpctestifyBinary } from "../runtime/binaryResolver";
@@ -15,7 +15,9 @@ interface LanguageClientModule {
       outputChannel: vscode.OutputChannel;
     },
   ) => {
-    onDidChangeState: (callback: (event: { oldState: number; newState: number }) => void) => void;
+    onDidChangeState: (
+      callback: (event: { oldState: number; newState: number }) => void,
+    ) => void;
     start: () => Promise<void>;
     stop: () => Promise<void>;
     isRunning: () => boolean;
@@ -152,11 +154,9 @@ export class GrpctestifyLspClient {
       output.appendLine(message);
       debug.appendLine(`[lsp:error] ${message}`);
       if (this.consecutiveFailures >= 3) {
-        void vscode.window.showWarningMessage(
-          `${message}. LSP is in degraded mode after repeated failures. Use gRPCTestify: Restart LSP after fixing binary/runtime issues.`,
+        output.appendLine(
+          "[lsp] Degraded mode after repeated failures. Use 'gRPCTestify: Restart LSP' after fixing binary/runtime issues.",
         );
-      } else {
-        void vscode.window.showWarningMessage(message);
       }
     }
   }

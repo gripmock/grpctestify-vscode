@@ -90,16 +90,16 @@
     ]
   },
   "assertPlugin": {
-    "line": "@json_schema(\"schema.json\")",
+    "line": "@uuid(\"550e8400-e29b-41d4-a716-446655440000\")",
     "captures": [
       {
         "index": 0,
-        "text": "@json_schema(",
+        "text": "@uuid(",
         "scope": "entity.name.function.plugin.grpctestify"
       },
       {
         "index": 1,
-        "text": "json_schema",
+        "text": "uuid",
         "scope": null
       }
     ]
@@ -120,11 +120,11 @@
     ]
   },
   "extractPair": {
-    "line": "user_id: .response.user.id",
+    "line": "user_id = .response.user.id",
     "captures": [
       {
         "index": 0,
-        "text": "user_id: .response.user.id",
+        "text": "user_id = .response.user.id",
         "scope": null
       },
       {
@@ -134,7 +134,7 @@
       },
       {
         "index": 2,
-        "text": ": ",
+        "text": " = ",
         "scope": "punctuation.separator.key-value.grpctestify"
       },
       {

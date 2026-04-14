@@ -22,12 +22,26 @@ export interface BinaryCapabilities {
   jsonOutput: boolean;
 }
 
+export const MIN_CLI_VERSION = "1.5.1";
+
 export interface GrpctestifyBinary {
   command: string;
   resolvedPath: string;
   version: string;
   rawVersion: string;
   capabilities: BinaryCapabilities;
+  meetsMinVersion: boolean;
+}
+
+function compareSemVer(a: string, b: string): number {
+  const pa = a.split("-")[0]?.split(".").map(Number) ?? [0, 0, 0];
+  const pb = b.split("-")[0]?.split(".").map(Number) ?? [0, 0, 0];
+  for (let i = 0; i < 3; i += 1) {
+    const va = pa[i] ?? 0;
+    const vb = pb[i] ?? 0;
+    if (va !== vb) return va < vb ? -1 : 1;
+  }
+  return 0;
 }
 
 function parseVersion(raw: string): string | undefined {
@@ -193,5 +207,6 @@ export async function resolveGrpctestifyBinary(): Promise<GrpctestifyBinary> {
     version,
     rawVersion,
     capabilities,
+    meetsMinVersion: compareSemVer(version, MIN_CLI_VERSION) >= 0,
   };
 }

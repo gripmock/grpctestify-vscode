@@ -4,8 +4,13 @@ import * as vscode from "vscode";
 const pathKeys = new Set([
   "descriptor",
   "ca_cert",
+  "ca_file",
+  "cert",
+  "key",
   "client_cert",
+  "cert_file",
   "client_key",
+  "key_file",
 ]);
 
 function parseCandidatePaths(value: string): string[] {
@@ -39,7 +44,7 @@ export function registerDocumentLinks(context: vscode.ExtensionContext): void {
 
         for (let i = 0; i < document.lineCount; i += 1) {
           const text = document.lineAt(i).text;
-          const match = text.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.+)$/);
+          const match = text.match(/^\s*([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.+)$/);
           if (!match) {
             continue;
           }

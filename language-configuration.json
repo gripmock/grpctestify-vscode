@@ -3,9 +3,18 @@
     "lineComment": "#"
   },
   "brackets": [
-    ["{", "}"],
-    ["[", "]"],
-    ["(", ")"]
+    [
+      "{",
+      "}"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "(",
+      ")"
+    ]
   ],
   "autoClosingPairs": [
     {
@@ -30,11 +39,26 @@
     }
   ],
   "surroundingPairs": [
-    ["{", "}"],
-    ["[", "]"],
-    ["(", ")"],
-    ["'", "'"],
-    ["\"", "\""]
+    [
+      "{",
+      "}"
+    ],
+    [
+      "[",
+      "]"
+    ],
+    [
+      "(",
+      ")"
+    ],
+    [
+      "'",
+      "'"
+    ],
+    [
+      "\"",
+      "\""
+    ]
   ],
   "indentationRules": {
     "increaseIndentPattern": "^\\s*(\\{.*|\\[.*|\\().*$",
@@ -42,8 +66,8 @@
   },
   "folding": {
     "markers": {
-      "start": "^\\s*---\\s*(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)\\b.*---\\s*$",
-      "end": "(?=^---\\s*(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)\\b.*---\\s*$|\\z)"
+      "start": "^\\s*---\\s*(META|ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)\\b.*---\\s*$",
+      "end": "(?=^---\\s*(META|ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)\\b.*---\\s*$|\\z)"
     }
   }
 }

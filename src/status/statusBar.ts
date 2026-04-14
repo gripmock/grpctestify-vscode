@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
 
-import { resolveGrpctestifyBinary } from "../runtime/binaryResolver";
+import {
+  MIN_CLI_VERSION,
+  resolveGrpctestifyBinary,
+} from "../runtime/binaryResolver";
 import { GrpctestifyError } from "../runtime/errors";
 
 const STATUS_ACTIONS_COMMAND_ID = "grpctestify.status.actions";
@@ -19,9 +22,17 @@ export function registerStatusBar(context: vscode.ExtensionContext): void {
   const refresh = async () => {
     try {
       const binary = await resolveGrpctestifyBinary();
-      item.text = "gRPCTestify: ready";
-      item.tooltip = `gRPCTestify ready\n${binary.resolvedPath}\nVersion: ${binary.version}`;
-      item.backgroundColor = undefined;
+      if (binary.meetsMinVersion) {
+        item.text = "gRPCTestify: ready";
+        item.tooltip = `gRPCTestify ready\n${binary.resolvedPath}\nVersion: ${binary.version}`;
+        item.backgroundColor = undefined;
+      } else {
+        item.text = "gRPCTestify: update";
+        item.tooltip = `gRPCTestify v${binary.version} (>= ${MIN_CLI_VERSION} recommended)\n${binary.resolvedPath}\nClick for quick actions.`;
+        item.backgroundColor = new vscode.ThemeColor(
+          "statusBarItem.warningBackground",
+        );
+      }
     } catch (error) {
       if (
         error instanceof GrpctestifyError &&
