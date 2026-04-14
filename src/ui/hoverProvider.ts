@@ -454,7 +454,7 @@ const INLINE_OPTION_DOCS: Record<
   },
   with_asserts: {
     appliesTo: ["RESPONSE", "ERROR"],
-    doc: "Run the ASSERTS section after verifying the body/error. Without this, ASSERTS only runs when there is no explicit RESPONSE/ERROR.",
+    doc: "Run the ASSERTS section after verifying the body/error. Without this, ASSERTS only runs when there is no explicit RESPONSE/ERROR. `with_asserts` is equivalent to `with_asserts=true`.",
     example: "--- RESPONSE with_asserts ---",
   },
   tolerance: {

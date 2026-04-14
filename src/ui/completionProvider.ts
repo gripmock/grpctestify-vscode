@@ -1163,8 +1163,14 @@ function sectionHeaderOptionCompletionItems(
       mk("with_asserts", vscode.CompletionItemKind.Property, {
         insertText: "with_asserts",
         detail: "$(check) Run ASSERTS after error",
-        doc: "Execute ASSERTS section after verifying the error response.",
+        doc: "Execute ASSERTS section after verifying the error response. `with_asserts` is equivalent to `with_asserts=true`.",
         sortText: "200",
+      }),
+      mk("with_asserts=true|false", vscode.CompletionItemKind.Property, {
+        insertText: new vscode.SnippetString("with_asserts=${1|true,false|}"),
+        detail: "$(check) Run ASSERTS toggle",
+        doc: "Explicit boolean form: `with_asserts=true|false`.",
+        sortText: "201",
       }),
     ];
   }
@@ -1185,7 +1191,13 @@ function sectionHeaderOptionCompletionItems(
       key: "with_asserts",
       snippet: "with_asserts",
       detail: "$(check) Run ASSERTS",
-      doc: "Execute ASSERTS section after verifying response body.",
+      doc: "Execute ASSERTS section after verifying response body. `with_asserts` is equivalent to `with_asserts=true`.",
+    },
+    {
+      key: "with_asserts=true|false",
+      snippet: "with_asserts=${1|true,false|}",
+      detail: "$(check) Run ASSERTS toggle",
+      doc: "Explicit boolean form: `with_asserts=true|false`.",
     },
     {
       key: "tolerance=0.001",
