@@ -1118,7 +1118,8 @@ function sectionKeyCompletionItems(
     const valueItems = metaValueCompletionItems(document, position);
     if (valueItems.length > 0) return valueItems;
     const line = document.lineAt(position.line).text;
-    if (line.trimEnd().endsWith(":")) return metaKeyCompletionItems(document, position);
+    if (line.trimEnd().endsWith(":"))
+      return metaKeyCompletionItems(document, position);
     return metaKeyCompletionItems(document, position);
   }
   if (section === "REQUEST" || section === "RESPONSE") {
@@ -1451,10 +1452,9 @@ export function registerCompletionProvider(
           new vscode.Position(position.line, lineText.length),
         );
 
-        if (
-          /^\s*-*$/.test(linePrefixRaw) ||
-          /^---\s*[A-Z_]*$/.test(linePrefix)
-        ) {
+        const isSectionHeaderPrefix = /^---\s*[A-Z_]*$/.test(linePrefix);
+        const isBlankHeaderLine =  /^\s*-*$/.test(linePrefixRaw) && !currentSection;
+        if (isSectionHeaderPrefix || isBlankHeaderLine) {
           return sectionCompletionItems(replaceRange);
         }
 

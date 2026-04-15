@@ -19,6 +19,23 @@ import {
   parseCoverageReportFromStdout,
 } from "../../testing/controller";
 
+async function waitForLspRunning(timeoutMs = 7000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const diagnostics = (await vscode.commands.executeCommand(
+      "grpctestify.activationDiagnostics",
+    )) as {
+      lsp?: { hasClient?: boolean; running?: boolean };
+    };
+    if (diagnostics?.lsp?.hasClient && diagnostics.lsp.running) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  throw new Error("Timed out waiting for LSP to become running");
+}
+
 suite("gRPCTestify extension", () => {
   test("registers core commands", async () => {
     const extension = vscode.extensions.getExtension("gripmock.grpctestify");
@@ -230,11 +247,14 @@ suite("gRPCTestify extension", () => {
   });
 
   test("testing refresh and LSP restart commands execute", async () => {
+    await waitForLspRunning();
     await vscode.commands.executeCommand("grpctestify.testing.refresh");
     await vscode.commands.executeCommand("grpctestify.restartLsp");
+    await waitForLspRunning();
   });
 
   test("activation diagnostics command returns runtime snapshot", async () => {
+    await waitForLspRunning();
     const diagnostics = (await vscode.commands.executeCommand(
       "grpctestify.activationDiagnostics",
     )) as {
@@ -261,7 +281,9 @@ suite("gRPCTestify extension", () => {
   });
 
   test("LSP remains running after restart command", async () => {
+    await waitForLspRunning();
     await vscode.commands.executeCommand("grpctestify.restartLsp");
+    await waitForLspRunning();
     const diagnostics = (await vscode.commands.executeCommand(
       "grpctestify.activationDiagnostics",
     )) as { lsp: { hasClient: boolean; running: boolean } };
@@ -803,7 +825,7 @@ suite("gRPCTestify extension", () => {
       '{"message":"Hello"}',
       "",
       "--- ASSERTS ---",
-      "@",
+      "",
     ].join("\n");
     await writeFile(filePath, content, "utf8");
 
@@ -816,7 +838,7 @@ suite("gRPCTestify extension", () => {
       (await vscode.commands.executeCommand<vscode.CompletionList>(
         "vscode.executeCompletionItemProvider",
         doc.uri,
-        new vscode.Position(doc.lineCount - 1, 1),
+        new vscode.Position(doc.lineCount - 1, 0),
       )) ?? new vscode.CompletionList([]);
 
     const labels = completions.items.map((item) =>
@@ -883,7 +905,7 @@ suite("gRPCTestify extension", () => {
       typeof item.label === "string" ? item.label : item.label.label,
     );
     assert.ok(
-      labels.some((l) => l.includes("= .response")),
+      labels.some((l) => l.includes("var = .path")),
       "Expected JQ path extract in completions",
     );
     assert.ok(

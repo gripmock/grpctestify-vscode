@@ -331,7 +331,7 @@
           "include": "#comment"
         },
         {
-          "match": "^([A-Za-z_][A-Za-z0-9_]*)(\\s*:\\s*)(.+)$",
+          "match": "^([A-Za-z_][A-Za-z0-9_]*)(\\s*=\\s*)(.+)$",
           "captures": {
             "1": {
               "name": "variable.other.extracted-name.grpctestify"
