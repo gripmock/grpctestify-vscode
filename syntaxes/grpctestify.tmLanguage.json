@@ -22,7 +22,7 @@
       ]
     },
     "section-header": {
-      "match": "^(---\\s+)(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS)(?:\\s+[^-][^-]*)?(\\s+---)(.*)?$",
+      "match": "^(---\\s+)(ADDRESS|ENDPOINT|REQUEST|RESPONSE|ERROR|REQUEST_HEADERS|ASSERTS|EXTRACT|TLS|PROTO|OPTIONS|HEADERS|META)(?:\\s+[^-][^-]*)?(\\s+---)(.*)?$",
       "captures": {
         "1": {
           "name": "punctuation.definition.section.begin.grpctestify"
@@ -40,6 +40,9 @@
     },
     "sections": {
       "patterns": [
+        {
+          "include": "#meta-section"
+        },
         {
           "include": "#address-section"
         },
@@ -78,6 +81,26 @@
         }
       ]
     },
+    "meta-section": {
+      "begin": "^(---\\s+META\\s+---)(.*)?$",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.section.name.grpctestify"
+        },
+        "2": {
+          "name": "meta.section.options.grpctestify"
+        }
+      },
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
+      "patterns": [
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "source.yaml"
+        }
+      ]
+    },
     "address-section": {
       "begin": "^(---\\s+ADDRESS\\s+---)(.*)?$",
       "beginCaptures": {
@@ -88,7 +111,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -120,7 +143,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -158,7 +181,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -192,7 +215,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#request-headers-section"
@@ -209,7 +232,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -220,7 +243,7 @@
       ]
     },
     "response-section": {
-      "begin": "^(---\\s+RESPONSE(?:\\s+[^-][^-]*)?\\s+---)(.*)?$",
+      "begin": "^(---\\s+RESPONSE(?:\\s+(?:with_asserts(?:=(?:true|false))?|partial|unordered_arrays|tolerance=\\S+|redact=\\S+))*\\s+---)(.*)?$",
       "beginCaptures": {
         "1": {
           "name": "keyword.section.name.grpctestify"
@@ -229,7 +252,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -240,7 +263,7 @@
       ]
     },
     "error-section": {
-      "begin": "^(---\\s+ERROR(?:\\s+[^-][^-]*)?\\s+---)(.*)?$",
+      "begin": "^(---\\s+ERROR(?:\\s+(?:with_asserts(?:=(?:true|false))?|partial|unordered_arrays|tolerance=\\S+|redact=\\S+))*\\s+---)(.*)?$",
       "beginCaptures": {
         "1": {
           "name": "keyword.section.name.grpctestify"
@@ -249,7 +272,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -269,7 +292,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -302,13 +325,13 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
         },
         {
-          "match": "^([A-Za-z_][A-Za-z0-9_]*)(\\s*:\\s*)(.+)$",
+          "match": "^([A-Za-z_][A-Za-z0-9_]*)(\\s*=\\s*)(.+)$",
           "captures": {
             "1": {
               "name": "variable.other.extracted-name.grpctestify"
@@ -333,7 +356,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -364,7 +387,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"
@@ -395,7 +418,7 @@
           "name": "meta.section.options.grpctestify"
         }
       },
-      "end": "(?=^---\\s+[A-Z_]+\\s+---|\\z)",
+      "end": "(?=^---\\s+[A-Z_]+(?:\\s+[^-][^-]*)?\\s+---|\\z)",
       "patterns": [
         {
           "include": "#comment"

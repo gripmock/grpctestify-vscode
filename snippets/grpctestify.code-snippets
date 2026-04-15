@@ -2,37 +2,51 @@
   "Section Header": {
     "scope": "grpctestify",
     "prefix": "gctf:section",
-    "body": "--- ${1|ADDRESS,ENDPOINT,REQUEST,RESPONSE,ERROR,REQUEST_HEADERS,ASSERTS,EXTRACT,TLS,PROTO,OPTIONS|} ---",
-    "description": "Insert a gRPCTestify section header",
+    "body": "--- ${1|META,ADDRESS,ENDPOINT,REQUEST,RESPONSE,ERROR,REQUEST_HEADERS,ASSERTS,EXTRACT,TLS,PROTO,OPTIONS|} ---",
+    "description": "Insert a gRPCTestify section header"
+  },
+  "META Section": {
+    "scope": "grpctestify",
+    "prefix": "gctf:meta",
+    "body": [
+      "--- META ---",
+      "name: ${1:test name}",
+      "summary: ${2:short description}",
+      "tags: [${3:smoke}, ${4:regression}]",
+      "owner: ${5:team-name}",
+      "links:",
+      "  - ${6:https://example.com/spec}"
+    ],
+    "description": "Test metadata (YAML): name, summary, tags, owner, links"
   },
   "ADDRESS Section": {
     "scope": "grpctestify",
     "prefix": "gctf:address",
     "body": ["--- ADDRESS ---", "${1:localhost:4770}"],
-    "description": "Insert ADDRESS section",
+    "description": "gRPC server address (host:port)"
   },
   "ENDPOINT Section": {
     "scope": "grpctestify",
     "prefix": "gctf:endpoint",
     "body": ["--- ENDPOINT ---", "${1:helloworld}.${2:Greeter}/${3:SayHello}"],
-    "description": "Insert ENDPOINT section",
+    "description": "gRPC method path: package.Service/Method"
   },
   "REQUEST Section": {
     "scope": "grpctestify",
     "prefix": "gctf:request",
     "body": ["--- REQUEST ---", "{", "  \"${1:name}\": \"${2:Alice}\"", "}"],
-    "description": "Insert REQUEST section",
+    "description": "JSON5 request body (supports {{var}} templates)"
   },
   "RESPONSE Section": {
     "scope": "grpctestify",
     "prefix": "gctf:response",
     "body": [
-      "--- RESPONSE ${1:with_asserts=true partial=false tolerance=0} ---",
+      "--- RESPONSE ${1:with_asserts partial tolerance=0.1} ---",
       "{",
       "  \"${2:message}\": \"${3:Hello}\"",
-      "}",
+      "}"
     ],
-    "description": "Insert RESPONSE section with inline options",
+    "description": "Expected response body with inline options"
   },
   "ERROR Section": {
     "scope": "grpctestify",
@@ -40,14 +54,17 @@
     "body": [
       "--- ERROR ---",
       "{",
-      "  \"code\": \"${1:NOT_FOUND}\",",
-      "  \"message\": \"${2:entity not found}\",",
-      "  \"details\": [",
-      "    { \"@type\": \"${3:type.googleapis.com/google.rpc.ResourceInfo}\", \"resource_name\": \"${4:users/123}\" }",
-      "  ]",
-      "}",
+      "  \"code\": ${1:5},",
+      "  \"message\": \"${2:entity not found}\"",
+      "}"
     ],
-    "description": "Insert ERROR section",
+    "description": "Expected gRPC error (code + message). Use simple string for substring match."
+  },
+  "ERROR Simple String": {
+    "scope": "grpctestify",
+    "prefix": "gctf:error-string",
+    "body": ["--- ERROR ---", "\"${1:not found}\""],
+    "description": "Simple string error — substring match against actual error message"
   },
   "REQUEST_HEADERS Section": {
     "scope": "grpctestify",
@@ -55,9 +72,9 @@
     "body": [
       "--- REQUEST_HEADERS ---",
       "${1:authorization}: Bearer ${2:token}",
-      "${3:x-request-id}: ${4:req-123}",
+      "${3:x-request-id}: ${4:req-123}"
     ],
-    "description": "Insert REQUEST_HEADERS section",
+    "description": "Custom request headers (key: value per line)"
   },
   "ASSERTS Section": {
     "scope": "grpctestify",
@@ -66,21 +83,21 @@
       "--- ASSERTS ---",
       ".${1:status} == \"${2:ok}\"",
       "@has_header(\"${3:x-request-id}\")",
-      "@uuid(.${4:id}, \"v4\")",
+      "@uuid(.${4:id})",
       "@email(.${5:user.email})",
-      ".${6:items} | length > ${7:0}",
+      "@len(.${6:items}) > ${7:0}"
     ],
-    "description": "Insert ASSERTS section with canonical operators/plugins",
+    "description": "Assertion expressions with operators and plugins"
   },
   "EXTRACT Section": {
     "scope": "grpctestify",
     "prefix": "gctf:extract",
     "body": [
       "--- EXTRACT ---",
-      "${1:user_id}: .${2:user.id}",
-      "${3:domain}: .${4:user.email} | split(\"@\") | .[1]",
+      "${1:user_id} = .${2:user.id}",
+      "${3:domain} = .${4:user.email} | split(\"@\") | .[1]"
     ],
-    "description": "Insert EXTRACT section with JQ helpers",
+    "description": "Extract values from response into variables (var = .jq.path)"
   },
   "TLS Section": {
     "scope": "grpctestify",
@@ -88,36 +105,33 @@
     "body": [
       "--- TLS ---",
       "ca_cert: ${1:./certs/ca.pem}",
-      "client_cert: ${2:./certs/client.pem}",
-      "client_key: ${3:./certs/client.key}",
+      "cert: ${2:./certs/client.pem}",
+      "key: ${3:./certs/client.key}",
       "server_name: ${4:localhost}",
-      "insecure: ${5:false}",
+      "insecure: ${5:false}"
     ],
-    "description": "Insert TLS/mTLS section",
+    "description": "TLS / mTLS configuration"
   },
   "PROTO Section": {
     "scope": "grpctestify",
     "prefix": "gctf:proto",
-    "body": [
-      "--- PROTO ---",
-      "descriptor: ${1:./proto/api.desc}",
-      "files: ${2:helloworld.proto}",
-      "import_paths: ${3:./proto,./third_party}",
-    ],
-    "description": "Insert PROTO section",
+    "body": ["--- PROTO ---", "descriptor: ${1:./proto/api.desc}"],
+    "description": "Proto descriptor or source files"
   },
   "OPTIONS Section": {
     "scope": "grpctestify",
     "prefix": "gctf:options",
     "body": [
       "--- OPTIONS ---",
-      "retry: ${1:2}",
-      "retry_delay: ${2:0.5}",
-      "no_retry: ${3:false}",
+      "timeout: ${1:30}",
+      "retry: ${2:2}",
+      "retry-delay: ${3:1.0}",
+      "no-retry: ${4:false}",
+      "compression: ${5:gzip}"
     ],
-    "description": "Insert OPTIONS section",
+    "description": "Per-request options: timeout, retry, compression"
   },
-  "Unary Happy Path Template": {
+  "Unary Happy Path": {
     "scope": "grpctestify",
     "prefix": "gctf:unary",
     "body": [
@@ -132,17 +146,17 @@
       "  \"name\": \"${5:Alice}\"",
       "}",
       "",
-      "--- RESPONSE with_asserts=true ---",
+      "--- RESPONSE with_asserts ---",
       "{",
       "  \"message\": \"${6:Hello Alice}\"",
       "}",
       "",
       "--- ASSERTS ---",
-      ".message startsWith \"Hello\"",
+      ".message startsWith \"Hello\""
     ],
-    "description": "Unary happy-path test template",
+    "description": "Unary RPC happy-path test"
   },
-  "Unary Error Path Template": {
+  "Unary Error Path": {
     "scope": "grpctestify",
     "prefix": "gctf:unary-error",
     "body": [
@@ -159,13 +173,13 @@
       "",
       "--- ERROR ---",
       "{",
-      "  \"code\": \"${6:NOT_FOUND}\",",
+      "  \"code\": ${6:5},",
       "  \"message\": \"${7:user not found}\"",
-      "}",
+      "}"
     ],
-    "description": "Unary error-path test template",
+    "description": "Unary RPC error-path test"
   },
-  "Streaming Test Template": {
+  "Streaming Response (NDJSON)": {
     "scope": "grpctestify",
     "prefix": "gctf:streaming",
     "body": [
@@ -180,17 +194,73 @@
       "  \"room\": \"${5:general}\"",
       "}",
       "",
-      "--- RESPONSE with_asserts=true unordered_arrays=true ---",
-      "[",
-      "  { \"author\": \"${6:alice}\", \"text\": \"${7:hi}\" }",
-      "]",
+      "--- RESPONSE with_asserts unordered_arrays ---",
+      "{\"author\": \"${6:alice}\", \"text\": \"${7:hi}\"}",
+      "{\"author\": \"${8:bob}\", \"text\": \"${9:hey}\"}",
       "",
       "--- ASSERTS ---",
-      ". | length >= ${8:1}",
+      "@scope_message_count == 2",
+      "@elapsed_ms < ${10:5000}"
     ],
-    "description": "Streaming test skeleton",
+    "description": "Server-streaming test with NDJSON response (one JSON object per message)"
   },
-  "Assert-First Validation Template": {
+  "mTLS Full Setup": {
+    "scope": "grpctestify",
+    "prefix": "gctf:mtls",
+    "body": [
+      "--- ADDRESS ---",
+      "${1:localhost:4770}",
+      "",
+      "--- ENDPOINT ---",
+      "${2:api}.${3:Service}/${4:Method}",
+      "",
+      "--- TLS ---",
+      "ca_cert: ${5:./certs/ca.pem}",
+      "cert: ${6:./certs/client.pem}",
+      "key: ${7:./certs/client.key}",
+      "server_name: ${8:my-service.internal}",
+      "",
+      "--- PROTO ---",
+      "descriptor: ${9:./proto/api.desc}",
+      "",
+      "--- REQUEST ---",
+      "{",
+      "  \"${10:key}\": \"${11:value}\"",
+      "}",
+      "",
+      "--- RESPONSE ---",
+      "{",
+      "  ${12:// run with --write to capture} ${13:\"ok\": true}",
+      "}"
+    ],
+    "description": "Full mTLS test with proto descriptor and custom server name"
+  },
+  "Env Var Injection": {
+    "scope": "grpctestify",
+    "prefix": "gctf:env",
+    "body": [
+      "--- ADDRESS ---",
+      "${1:localhost:4770}",
+      "",
+      "--- ENDPOINT ---",
+      "${2:api}.${3:Service}/${4:Method}",
+      "",
+      "--- EXTRACT ---",
+      "${5:token} = @env(\"${6:API_TOKEN}\")",
+      "",
+      "--- REQUEST ---",
+      "{",
+      "  \"token\": \"{{ ${5:token} }}\"",
+      "}",
+      "",
+      "--- RESPONSE ---",
+      "{",
+      "  \"status\": \"${7:ok}\"",
+      "}"
+    ],
+    "description": "Inject environment variable via EXTRACT → {{var}} in REQUEST"
+  },
+  "Assert-First": {
     "scope": "grpctestify",
     "prefix": "gctf:assert-first",
     "body": [
@@ -208,11 +278,11 @@
       "--- ASSERTS ---",
       ".${7:status} == \"${8:ok}\"",
       "@has_header(\"${9:x-request-id}\")",
-      "!@empty(.${10:data})",
+      "!@empty(.${10:data})"
     ],
-    "description": "Assert-first template with plugin usage",
+    "description": "Assert-first template — no RESPONSE section, only ASSERTS"
   },
-  "Snapshot Update Template": {
+  "Snapshot Capture": {
     "scope": "grpctestify",
     "prefix": "gctf:snapshot",
     "body": [
@@ -230,8 +300,8 @@
       "--- RESPONSE ---",
       "{",
       "  ${7:// run with --write to capture current snapshot}",
-      "}",
+      "}"
     ],
-    "description": "Snapshot-friendly template for --write workflow",
-  },
+    "description": "Snapshot template — run with --write to auto-fill response"
+  }
 }

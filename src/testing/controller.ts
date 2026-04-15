@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { promises as fs } from "node:fs";
 
 import { getSettings } from "../config/settings";
 import { resolveGrpctestifyBinary } from "../runtime/binaryResolver";
@@ -104,11 +105,16 @@ export function applyStreamEventToTestRun(
 
     if (event.event === "test_pass") {
       run.passed(eventTestItem, durationMs);
+      const output = getOutputChannel();
+      output.appendLine(`[PASS] ${eventTestItem?.label ?? event.testId} (${durationMs}ms)`);
       return;
     }
 
     if (event.event === "test_skip") {
       run.skipped(eventTestItem);
+      const output = getOutputChannel();
+      output.appendLine(`[SKIP] ${eventTestItem?.label ?? event.testId}`);
+      output.appendLine(`         ${event.message ?? ''}`);
       return;
     }
 
@@ -117,6 +123,9 @@ export function applyStreamEventToTestRun(
       new vscode.TestMessage(event.message ?? "Test failed"),
       durationMs,
     );
+    const output = getOutputChannel();
+    output.appendLine(`[FAIL] ${eventTestItem?.label ?? event.testId}`);
+    output.appendLine(`        ${event.message ?? 'Test failed'}`);
   }
 }
 
@@ -181,6 +190,11 @@ function createTestItemRecursively(
   if (item.range) {
     testItem.range = toVsCodeRange(item.range);
   }
+  if (item.tags && item.tags.length > 0) {
+    testItem.tags = item.tags.map(t => new vscode.TestTag(t));
+  } else {
+    testItem.tags = [new vscode.TestTag("untagged")];
+  }
 
   for (const child of item.children) {
     testItem.children.add(
@@ -228,6 +242,8 @@ export async function listTestsForTargetPath(
     decodeListReport,
     "list report",
   );
+
+  await enrichTagsFromFileFallback(report.tests);
   return report.tests;
 }
 
@@ -325,10 +341,118 @@ function filePathOf(item: vscode.TestItem): string | undefined {
   return item.uri.fsPath;
 }
 
+function normalizeTag(raw: string): string {
+  let value = raw.trim();
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    value = value.slice(1, -1).trim();
+  }
+  return value;
+}
+
+function parseInlineTags(value: string): string[] {
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    const inner = trimmed.slice(1, -1).trim();
+    if (!inner) return [];
+    return inner
+      .split(",")
+      .map((entry) => normalizeTag(entry))
+      .filter((entry) => entry.length > 0);
+  }
+
+  return trimmed
+    .split(",")
+    .map((entry) => normalizeTag(entry))
+    .filter((entry) => entry.length > 0);
+}
+
+function extractMetaTags(content: string): string[] {
+  const lines = content.split(/\r?\n/);
+  let inMeta = false;
+  let inTagsBlock = false;
+  const tags: string[] = [];
+
+  for (const line of lines) {
+    const header = line.match(/^---\s+([A-Z_]+)\b.*---\s*$/);
+    if (header) {
+      if (!inMeta) {
+        inMeta = header[1] === "META";
+        inTagsBlock = false;
+        continue;
+      }
+      break;
+    }
+
+    if (!inMeta || /^\s*(#|\/\/)/.test(line)) {
+      continue;
+    }
+
+    if (inTagsBlock) {
+      const listItem = line.match(/^\s*-\s*(.+?)\s*$/);
+      if (listItem) {
+        const tag = normalizeTag(listItem[1]);
+        if (tag) tags.push(tag);
+        continue;
+      }
+      if (/^\s*[A-Za-z_][A-Za-z0-9_-]*\s*:/.test(line)) {
+        inTagsBlock = false;
+      } else if (/^\s*$/.test(line)) {
+        continue;
+      } else {
+        inTagsBlock = false;
+      }
+    }
+
+    const tagsLine = line.match(/^\s*tags\s*:\s*(.*)$/);
+    if (!tagsLine) {
+      continue;
+    }
+
+    const rhs = tagsLine[1].trim();
+    if (!rhs) {
+      inTagsBlock = true;
+      continue;
+    }
+
+    tags.push(...parseInlineTags(rhs));
+  }
+
+  return Array.from(new Set(tags));
+}
+
+async function enrichTagsFromFileFallback(items: ListTestItem[]): Promise<void> {
+  for (const item of items) {
+    if ((!item.tags || item.tags.length === 0) && item.uri.startsWith("file://")) {
+      try {
+        const content = await fs.readFile(vscode.Uri.parse(item.uri).fsPath, "utf8");
+        const tags = extractMetaTags(content);
+        if (tags.length > 0) {
+          item.tags = tags;
+        }
+      } catch {
+        // Best-effort fallback for older binaries that don't return tags.
+      }
+    }
+
+    if (item.children.length > 0) {
+      await enrichTagsFromFileFallback(item.children);
+    }
+  }
+}
+
 function testItemsToRun(
   controller: vscode.TestController,
   request: vscode.TestRunRequest,
 ): vscode.TestItem[] {
+  const tagAwareRequest = request as vscode.TestRunRequest & {
+    includeTags?: readonly vscode.TestTag[];
+    excludeTags?: readonly vscode.TestTag[];
+  };
   const include = request.include
     ? flattenTestTree(request.include)
     : flattenTestTree(rootItems(controller.items));
@@ -337,7 +461,28 @@ function testItemsToRun(
       (item) => item.id,
     ),
   );
-  return include.filter((item) => !excluded.has(item.id) && !!item.uri);
+  const includeTagIds = new Set(
+    (tagAwareRequest.includeTags ?? []).map((tag) => tag.id),
+  );
+  const excludeTagIds = new Set(
+    (tagAwareRequest.excludeTags ?? []).map((tag) => tag.id),
+  );
+
+  return include.filter((item) => {
+    if (excluded.has(item.id) || !item.uri) {
+      return false;
+    }
+
+    const itemTagIds = new Set((item.tags ?? []).map((tag) => tag.id));
+    const includeOk =
+      includeTagIds.size === 0 ||
+      Array.from(includeTagIds).every((tagId) => itemTagIds.has(tagId));
+    const excludeOk = Array.from(excludeTagIds).every(
+      (tagId) => !itemTagIds.has(tagId),
+    );
+
+    return includeOk && excludeOk;
+  });
 }
 
 async function runTests(

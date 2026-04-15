@@ -5,8 +5,8 @@ import { readFile, rm, writeFile } from "node:fs/promises";
 
 import { getSettings } from "../config/settings";
 import { resolveGrpctestifyBinary } from "../runtime/binaryResolver";
-import { runProcess } from "../runtime/processRunner";
 import { toErrorMessage } from "../runtime/errors";
+import { runProcess } from "../runtime/processRunner";
 import { getDebugChannel } from "./outputChannels";
 
 function fullDocumentRange(document: vscode.TextDocument): vscode.Range {
@@ -54,7 +54,7 @@ export function registerFormatting(context: vscode.ExtensionContext): void {
         } catch (error) {
           const message = `Format provider failed: ${toErrorMessage(error)}`;
           debug.appendLine(`[format] ${message}`);
-          void vscode.window.showWarningMessage(message);
+          // Format errors go to debug channel only, no popup spam
           return [];
         } finally {
           await rm(tempFile, { force: true });

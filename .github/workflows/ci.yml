@@ -93,7 +93,7 @@ jobs:
 
       - name: Extension host tests
         env:
-          VSCODE_VERSION: 1.100.2
+          VSCODE_VERSION: 1.116.0
         run: npm run test:e2e:ci
 
       - name: Upload extension-host diagnostics

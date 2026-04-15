@@ -3,68 +3,50 @@ import * as vscode from "vscode";
 import { executeCliCommand, getActiveGctfFilePath } from "./commandRuntime";
 import { decodeInspectReport, parseJsonContract } from "../runtime/contracts";
 import { toErrorMessage } from "../runtime/errors";
+import { getOutputChannel } from "../ui/outputChannels";
 
 export const INSPECT_COMMAND_ID = "grpctestify.inspect";
 
-function renderInspectMarkdown(report: ReturnType<typeof decodeInspectReport>): string {
-  const renderDiagnostic = (diagnostic: (typeof report.diagnostics)[number]) => {
-    const location = `${diagnostic.range.start.line}:${diagnostic.range.start.column}`;
-    return `- [${diagnostic.severity}] \`${diagnostic.code}\` at ${location} - ${diagnostic.message}`;
-  };
-
+function renderInspectReport(report: ReturnType<typeof decodeInspectReport>): string {
   const lines: string[] = [];
-  lines.push("# gRPCTestify Inspect");
-  lines.push("");
-  lines.push(`- File: \`${report.file}\``);
-  lines.push(`- Parse time: **${report.parse_time_ms}ms**`);
-  lines.push(`- Validation time: **${report.validation_time_ms}ms**`);
+  lines.push(`=== gRPCTestify Inspect: ${report.file} ===`);
+  lines.push(`Parse: ${report.parse_time_ms}ms | Validation: ${report.validation_time_ms}ms`);
+  
   if (report.inferred_rpc_mode) {
-    lines.push(`- RPC mode: **${report.inferred_rpc_mode}**`);
+    lines.push(`RPC mode: ${report.inferred_rpc_mode}`);
   }
-  lines.push(
-    `- Diagnostics: **${report.diagnostics.length}** (semantic: ${report.semantic_diagnostics.length}, optimization: ${report.optimization_hints.length})`,
-  );
-  lines.push("");
-  lines.push("## Quick read");
-  if (
-    report.diagnostics.length === 0 &&
-    report.semantic_diagnostics.length === 0 &&
-    report.optimization_hints.length === 0
-  ) {
-    lines.push("- No issues found by inspect.");
+  
+  const totalIssues = report.diagnostics.length + report.semantic_diagnostics.length;
+  lines.push(`Issues: ${totalIssues} (parse: ${report.diagnostics.length}, semantic: ${report.semantic_diagnostics.length})`);
+  
+  if (report.diagnostics.length === 0 && report.semantic_diagnostics.length === 0 && report.optimization_hints.length === 0) {
+    lines.push("No issues found.");
   } else {
     if (report.diagnostics.length > 0) {
-      lines.push("- Parse/validation issues present.");
+      lines.push("");
+      lines.push("Parse/Validation errors:");
+      for (const d of report.diagnostics.slice(0, 5)) {
+        lines.push(`  [${d.severity}] ${d.code}: ${d.message}`);
+      }
     }
     if (report.semantic_diagnostics.length > 0) {
-      lines.push("- Semantic issues present.");
+      lines.push("");
+      lines.push("Semantic errors:");
+      for (const d of report.semantic_diagnostics.slice(0, 5)) {
+        lines.push(`  [${d.severity}] ${d.code}: ${d.message}`);
+      }
     }
     if (report.optimization_hints.length > 0) {
-      lines.push("- Optimization hints are available.");
+      lines.push("");
+      lines.push("Optimization hints:");
+      for (const d of report.optimization_hints.slice(0, 5)) {
+        lines.push(`  [${d.severity}] ${d.code}: ${d.message}`);
+      }
     }
   }
-
-  const topDiagnostics = [...report.diagnostics, ...report.semantic_diagnostics]
-    .slice(0, 8)
-    .map(renderDiagnostic);
-
-  if (topDiagnostics.length > 0) {
-    lines.push("");
-    lines.push("## Top diagnostics");
-    lines.push(...topDiagnostics);
-  }
-
-  if (report.optimization_hints.length > 0) {
-    lines.push("");
-    lines.push("## Optimization hints");
-    lines.push(...report.optimization_hints.slice(0, 8).map(renderDiagnostic));
-  }
-
+  
   lines.push("");
-  lines.push("## Raw JSON");
-  lines.push("```json");
-  lines.push(JSON.stringify(report, null, 2));
-  lines.push("```");
+  lines.push("========================================");
   return lines.join("\n");
 }
 
@@ -92,12 +74,9 @@ export function registerInspectCommand(context: vscode.ExtensionContext): void {
           decodeInspectReport,
           "inspect report",
         );
-        const content = renderInspectMarkdown(report);
-        const doc = await vscode.workspace.openTextDocument({
-          language: "markdown",
-          content,
-        });
-        await vscode.window.showTextDocument(doc, { preview: false });
+        const output = getOutputChannel();
+        output.append(renderInspectReport(report));
+        output.show();
       } catch (error) {
         void vscode.window.showErrorMessage(
           `Inspect failed: ${toErrorMessage(error)}`,

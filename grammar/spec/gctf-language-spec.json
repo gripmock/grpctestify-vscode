@@ -2,6 +2,7 @@
   "version": 1,
   "sections": {
     "primary": [
+      "META",
       "ADDRESS",
       "ENDPOINT",
       "REQUEST",
@@ -17,6 +18,10 @@
     "deprecated": ["HEADERS"]
   },
   "inlineOptionsSections": ["RESPONSE", "ERROR"],
+  "inlineOptions": {
+    "RESPONSE": ["partial", "with_asserts", "tolerance", "unordered_arrays", "redact"],
+    "ERROR": ["with_asserts"]
+  },
   "pluginPrefix": "@",
   "pluginTokenFamilies": ["assertion", "header", "validation"],
   "lexicalPrimitives": {
