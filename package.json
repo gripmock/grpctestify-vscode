@@ -85,7 +85,7 @@
     "eslint": "^9.39.4",
     "knip": "^5.88.1",
     "license-checker-rseidelsohn": "^4.4.2",
-    "mocha": "^10.2.0",
+    "mocha": "^12.0.0-beta.3",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.0"
