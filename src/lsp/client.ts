@@ -13,6 +13,18 @@ interface LanguageClientModule {
     clientOptions: {
       documentSelector: Array<{ language: string; scheme: string }>;
       outputChannel: vscode.OutputChannel;
+      middleware?: {
+        provideDocumentFormattingEdits?: (
+          document: vscode.TextDocument,
+          options: vscode.FormattingOptions,
+          token: vscode.CancellationToken,
+          next: (
+            document: vscode.TextDocument,
+            options: vscode.FormattingOptions,
+            token: vscode.CancellationToken,
+          ) => vscode.ProviderResult<vscode.TextEdit[]>,
+        ) => vscode.ProviderResult<vscode.TextEdit[]>;
+      };
     },
   ) => {
     onDidChangeState: (
@@ -125,6 +137,22 @@ export class GrpctestifyLspClient {
       const clientOptions = {
         documentSelector: [{ language: "grpctestify", scheme: "file" }],
         outputChannel: output,
+        middleware: {
+          // Skip LSP's broken document formatting; rely on the native formatProvider.
+          // vscode-languageclient's asFormattingOptions() crashes when options is null.
+          provideDocumentFormattingEdits: (
+            _document: vscode.TextDocument,
+            _options: vscode.FormattingOptions,
+            _token: vscode.CancellationToken,
+            _next: (
+              document: vscode.TextDocument,
+              options: vscode.FormattingOptions,
+              token: vscode.CancellationToken,
+            ) => vscode.ProviderResult<vscode.TextEdit[]>,
+          ) => {
+            return null;
+          },
+        },
       };
 
       this.client = new languageClient.LanguageClient(
