@@ -25,7 +25,6 @@ export function registerFmtCommand(context: vscode.ExtensionContext): void {
         if (editor && !editor.document.isUntitled) {
           await editor.document.save();
         }
-        void vscode.window.showInformationMessage("Formatting completed.");
       } catch (error) {
         void vscode.window.showErrorMessage(
           `Format failed: ${toErrorMessage(error)}`,

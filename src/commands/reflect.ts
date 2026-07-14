@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { executeCliCommand } from "./commandRuntime";
+import { executeCliCommand, getProtocolArgs } from "./commandRuntime";
 import { toErrorMessage } from "../runtime/errors";
 
 export const REFLECT_COMMAND_ID = "grpctestify.reflect";
@@ -14,7 +14,7 @@ export function registerReflectCommand(context: vscode.ExtensionContext): void {
         prompt: "Enter service/method symbol (or leave empty)",
       });
 
-      const args = ["reflect"];
+      const args = ["reflect", ...getProtocolArgs()];
       if (symbol && symbol.trim().length > 0) {
         args.push(symbol.trim());
       }

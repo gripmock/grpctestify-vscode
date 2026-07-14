@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import * as path from "node:path";
 
 import {
   executeCliCommand,
@@ -44,17 +43,7 @@ export function registerRunCommand(context: vscode.ExtensionContext): void {
       }
 
       try {
-        const exitCode = await runTarget(target);
-        if (exitCode === 0) {
-          void vscode.window.showInformationMessage(
-            "gRPCTestify run completed successfully.",
-          );
-        } else {
-          const label = path.basename(target);
-          void vscode.window.showWarningMessage(
-            `gRPCTestify run finished with failures for ${label}.`,
-          );
-        }
+        await runTarget(target);
       } catch (error) {
         if (target.endsWith(".gctf")) {
           setRunStatus(target, "failed");

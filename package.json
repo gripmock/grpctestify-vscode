@@ -2,7 +2,7 @@
   "name": "grpctestify",
   "displayName": "gRPCTestify",
   "description": "Rust-native VS Code tooling for .gctf: Testing API, check/fmt, inspect/explain, and LSP-powered authoring.",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "icon": "icons/icon.png",
   "keywords": [
     "grpc",
@@ -36,6 +36,8 @@
   "activationEvents": [
     "onLanguage:grpctestify",
     "onCommand:grpctestify.run",
+    "onCommand:grpctestify.call",
+    "onCommand:grpctestify.play",
     "onCommand:grpctestify.check",
     "onCommand:grpctestify.fmt",
     "onCommand:grpctestify.inspect",
@@ -77,19 +79,19 @@
     ]
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.19.17",
+    "@types/node": "^26.1.1",
     "@types/vscode": "^1.116.0",
-    "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.7.1",
-    "eslint": "^9.39.4",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
+    "eslint": "^10.0.0",
     "knip": "^5.88.1",
     "license-checker-rseidelsohn": "^4.4.2",
-    "mocha": "^12.0.0-beta.3",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.0"
+    "mocha": "^11.7.6",
+    "prettier": "^3.9.5",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.64.0"
   },
   "contributes": {
     "languages": [
@@ -323,10 +325,23 @@
           ],
           "description": "Debug profile mode for gRPCTestify tests"
         },
-        "grpctestify.testing.nativeDebugBridge": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable experimental native debug bridge for gRPCTestify tests"
+        "grpctestify.defaultProtocol": {
+          "type": "string",
+          "default": "grpc",
+          "enum": [
+            "grpc",
+            "grpc-web",
+            "connectrpc"
+          ],
+          "description": "Default gRPC protocol for all CLI commands"
+        },
+        "grpctestify.defaultExclude": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob patterns to exclude from test discovery and execution"
         },
         "grpctestify.defaultArgs.run": {
           "type": "array",
@@ -355,6 +370,16 @@
       {
         "command": "grpctestify.run",
         "title": "gRPCTestify: Run",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.call",
+        "title": "gRPCTestify: Call Endpoint",
+        "category": "gRPCTestify"
+      },
+      {
+        "command": "grpctestify.play",
+        "title": "gRPCTestify: Play (Web UI)",
         "category": "gRPCTestify"
       },
       {

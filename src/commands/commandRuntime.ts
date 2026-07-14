@@ -102,12 +102,28 @@ export async function executeCliCommand(
   );
 }
 
+export function getProtocolArgs(): string[] {
+  const settings = getSettings();
+  if (settings.defaultProtocol === "grpc") return [];
+  return ["--protocol", settings.defaultProtocol];
+}
+
+export function getExcludeArgs(): string[] {
+  const settings = getSettings();
+  if (settings.defaultExclude.length === 0) return [];
+  return settings.defaultExclude.flatMap((p) => ["--exclude", p]);
+}
+
 export function runArgsWithDefaults(extraArgs: string[]): string[] {
   const settings = getSettings();
-  return ["run", ...settings.defaultArgsRun, ...extraArgs];
+  const protocol = getProtocolArgs();
+  const exclude = getExcludeArgs();
+  return ["run", ...protocol, ...exclude, ...settings.defaultArgsRun, ...extraArgs];
 }
 
 export function checkArgsWithDefaults(extraArgs: string[]): string[] {
   const settings = getSettings();
-  return ["check", ...settings.defaultArgsCheck, ...extraArgs];
+  const protocol = getProtocolArgs();
+  const exclude = getExcludeArgs();
+  return ["check", ...protocol, ...exclude, ...settings.defaultArgsCheck, ...extraArgs];
 }

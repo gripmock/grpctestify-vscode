@@ -311,7 +311,14 @@ const SECTIONS: Record<
   },
   OPTIONS: {
     icon: "$(settings-gear)",
-    doc: "Per-request options: timeout, retries, and compression.\n\nThese override defaults from the CLI flags and config file.",
+    doc: "Per-request options: timeout, retries, compression, and protocol.\n\nThese override defaults from the CLI flags and config file.",
+    multiline: true,
+    repeatable: false,
+    bodyFormat: "`key: value` per line",
+  },
+  BENCH: {
+    icon: "$(dashboard)",
+    doc: "Benchmark configuration.\n\nDefines load-test parameters, profiles, and data sources for performance testing.\nRequires grpctestify 1.7+.",
     multiline: true,
     repeatable: false,
     bodyFormat: "`key: value` per line",
@@ -441,6 +448,84 @@ const KEY_DOCS: Record<
     doc: "Compression algorithm for the gRPC call.",
     example: "compression: gzip",
   },
+  protocol: {
+    section: "OPTIONS",
+    type: '"grpc" | "grpc-web" | "connectrpc"',
+    doc: "Wire protocol for the gRPC call. Overrides the CLI `--protocol` flag.",
+    example: "protocol: grpc-web",
+  },
+  profile: {
+    section: "BENCH",
+    type: '"functional" | "load" | "stress" | "spike" | "soak"',
+    doc: "Benchmark profile presets with sensible defaults.\n- `functional`: low concurrency, validate correctness\n- `load`: moderate load, measure throughput\n- `stress`: high load, find breaking point\n- `spike`: sudden load increase, test elasticity\n- `soak`: sustained load over time, detect degradation",
+    example: "profile: load",
+  },
+  mode: {
+    section: "BENCH",
+    type: '"warmup" | "dry_run"',
+    doc: "Execution mode:\n- `warmup`: send requests without recording results\n- `dry_run`: validate configuration without sending requests",
+    example: "mode: warmup",
+  },
+  concurrency: {
+    section: "BENCH",
+    type: "uint",
+    doc: "Number of concurrent worker goroutines sending requests.",
+    example: "concurrency: 20",
+  },
+  requests: {
+    section: "BENCH",
+    type: "uint",
+    doc: "Total number of requests to send across all workers.",
+    example: "requests: 10000",
+  },
+  duration: {
+    section: "BENCH",
+    type: "uint (seconds)",
+    doc: "Test duration in seconds. Ignored if `requests` is set.",
+    example: "duration: 60",
+  },
+  ramp_up: {
+    section: "BENCH",
+    type: "uint (seconds)",
+    doc: "Ramp-up period during which concurrency gradually increases to the target level.",
+    example: "ramp_up: 10",
+  },
+  warmup: {
+    section: "BENCH",
+    type: "uint (seconds)",
+    doc: "Warmup period before measurements begin. Results are discarded.",
+    example: "warmup: 5",
+  },
+  max_duration: {
+    section: "BENCH",
+    type: "uint (seconds)",
+    doc: "Hard limit on test duration regardless of other settings.",
+    example: "max_duration: 300",
+  },
+  max_rps: {
+    section: "BENCH",
+    type: "uint",
+    doc: "Maximum requests per second across all workers.",
+    example: "max_rps: 500",
+  },
+  connections: {
+    section: "BENCH",
+    type: "uint",
+    doc: "Number of persistent gRPC connections to maintain.",
+    example: "connections: 5",
+  },
+  load_schedule: {
+    section: "BENCH",
+    type: '"linear" | "incremental" | "random"',
+    doc: "Load scheduling pattern:\n- `linear`: constant load at target level\n- `incremental`: step up load over time\n- `random`: random load within bounds",
+    example: "load_schedule: incremental",
+  },
+  sample_rate: {
+    section: "BENCH",
+    type: "float (0.0-1.0)",
+    doc: "Fraction of requests to sample for latency statistics. Lower values reduce memory overhead.",
+    example: "sample_rate: 0.5",
+  },
 };
 
 const INLINE_OPTION_DOCS: Record<
@@ -474,28 +559,7 @@ const INLINE_OPTION_DOCS: Record<
   },
 };
 
-const GRPC_STATUS: Record<number, [string, string]> = {
-  0: ["OK", "Success"],
-  1: ["CANCELLED", "Operation cancelled by caller"],
-  2: ["UNKNOWN", "Unknown or unclassifiable error"],
-  3: ["INVALID_ARGUMENT", "Client specified an invalid argument"],
-  4: ["DEADLINE_EXCEEDED", "Operation expired before completion"],
-  5: ["NOT_FOUND", "Requested resource was not found"],
-  6: ["ALREADY_EXISTS", "Resource already exists"],
-  7: ["PERMISSION_DENIED", "Caller lacks permission"],
-  8: ["RESOURCE_EXHAUSTED", "Quota or resource limit exceeded"],
-  9: [
-    "FAILED_PRECONDITION",
-    "System not in a state required for the operation",
-  ],
-  10: ["ABORTED", "Operation aborted due to concurrency conflict"],
-  11: ["OUT_OF_RANGE", "Value out of valid range"],
-  12: ["UNIMPLEMENTED", "Method not implemented by the server"],
-  13: ["INTERNAL", "Internal server error"],
-  14: ["UNAVAILABLE", "Service is currently unreachable"],
-  15: ["DATA_LOSS", "Unrecoverable data loss or corruption"],
-  16: ["UNAUTHENTICATED", "Request lacks valid authentication credentials"],
-};
+import { GRPC_STATUS_MAP } from "../runtime/grpcStatusCodes";
 
 function md(...lines: string[]): vscode.MarkdownString {
   return new vscode.MarkdownString(lines.join("\n\n"));
@@ -711,10 +775,14 @@ function tryOperatorHover(
   document: vscode.TextDocument,
   position: vscode.Position,
 ): vscode.Hover | undefined {
-  const wordRange = document.getWordRangeAtPosition(
-    position,
-    /[A-Za-z_][A-Za-z0-9_]+/,
-  );
+  const symbolPattern = /(?:===?|!==?|>=?|<=?)/;
+  let wordRange = document.getWordRangeAtPosition(position, symbolPattern);
+  if (!wordRange) {
+    wordRange = document.getWordRangeAtPosition(
+      position,
+      /[A-Za-z_][A-Za-z0-9_]+/,
+    );
+  }
   if (!wordRange) return undefined;
   const word = document.getText(wordRange);
   const info = OPERATORS[word];
@@ -737,7 +805,7 @@ function tryStatusCodeHover(trimmed: string): vscode.Hover | undefined {
   const codeMatch = trimmed.match(/"code"\s*:\s*(\d+)/);
   if (!codeMatch?.[1]) return undefined;
   const code = parseInt(codeMatch[1], 10);
-  const entry = GRPC_STATUS[code];
+  const entry = GRPC_STATUS_MAP[code];
   if (!entry) return undefined;
 
   return new vscode.Hover(

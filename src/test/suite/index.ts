@@ -1,5 +1,6 @@
 import * as path from "node:path";
-import * as Mocha from "mocha";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+import Mocha = require("mocha");
 import * as vscode from "vscode";
 
 export async function run(): Promise<void> {

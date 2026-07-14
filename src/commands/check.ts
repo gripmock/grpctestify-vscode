@@ -47,10 +47,8 @@ export function registerCheckCommand(context: vscode.ExtensionContext): void {
         const message = `Checked ${report.summary.total_files} file(s), errors: ${report.summary.total_errors}, warnings: ${report.summary.total_warnings}`;
         output.appendLine(message);
         if (report.summary.total_errors > 0) {
-          void vscode.window.showWarningMessage(message);
           return { status: "warning", message } as const;
         } else {
-          void vscode.window.showInformationMessage(message);
           return { status: "ok", message } as const;
         }
       } catch (error) {

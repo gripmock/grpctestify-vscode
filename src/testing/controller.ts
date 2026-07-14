@@ -5,6 +5,7 @@ import { getSettings } from "../config/settings";
 import { resolveGrpctestifyBinary } from "../runtime/binaryResolver";
 import type { ListTestItem } from "../runtime/contracts";
 import {
+  cliRangeToVsCode,
   decodeListReport,
   decodeRunStreamEvent,
   parseJsonContract,
@@ -12,6 +13,7 @@ import {
 import { toErrorMessage } from "../runtime/errors";
 import { runProcess } from "../runtime/processRunner";
 import { getDebugChannel, getOutputChannel } from "../ui/outputChannels";
+import { getExcludeArgs, getProtocolArgs } from "../commands/commandRuntime";
 
 const TEST_CONTROLLER_ID = "grpctestify.tests";
 const TEST_CONTROLLER_LABEL = "gRPCTestify";
@@ -165,16 +167,7 @@ function toVsCodeRange(range: {
   start: { line: number; column: number };
   end: { line: number; column: number };
 }): vscode.Range {
-  return new vscode.Range(
-    new vscode.Position(
-      Math.max(0, range.start.line - 1),
-      Math.max(0, range.start.column - 1),
-    ),
-    new vscode.Position(
-      Math.max(0, range.end.line - 1),
-      Math.max(0, range.end.column - 1),
-    ),
-  );
+  return cliRangeToVsCode(range);
 }
 
 function createTestItemRecursively(
@@ -233,7 +226,15 @@ export async function listTestsForTargetPath(
   const binary = await resolveGrpctestifyBinary();
   const result = await runProcess(
     binary.resolvedPath,
-    ["list", targetPath, "--format", "json", "--with-range"],
+    [
+      "list",
+      ...getProtocolArgs(),
+      ...getExcludeArgs(),
+      targetPath,
+      "--format",
+      "json",
+      "--with-range",
+    ],
     { timeoutMs: 45000 },
   );
 
@@ -493,18 +494,6 @@ async function runTests(
 ): Promise<void> {
   const output = getOutputChannel();
   const debug = getDebugChannel();
-  const settings = getSettings();
-
-  if (
-    mode === "debug" &&
-    settings.testingDebugMode === "native" &&
-    settings.testingNativeDebugBridge
-  ) {
-    debug.appendLine(
-      "[testing:debug] Native debug bridge requested but not implemented yet; using stream debug mode.",
-    );
-  }
-
   const run = controller.createTestRun(request);
   const candidates = testItemsToRun(controller, request);
   testingControllerDebugState.lastRunMode = mode;
@@ -531,9 +520,10 @@ async function runTests(
   }
 
   const binary = await resolveGrpctestifyBinary();
+  const commonArgs = [...getProtocolArgs(), ...getExcludeArgs()];
   const args =
     mode === "debug"
-      ? ["run", "--stream", "--verbose", ...Array.from(filePathToItem.keys())]
+      ? ["run", "--stream", "--verbose", ...commonArgs, ...Array.from(filePathToItem.keys())]
       : mode === "coverage"
         ? [
             "run",
@@ -541,9 +531,10 @@ async function runTests(
             "--coverage",
             "--coverage-format",
             "json",
+            ...commonArgs,
             ...Array.from(filePathToItem.keys()),
           ]
-        : ["run", "--stream", ...Array.from(filePathToItem.keys())];
+        : ["run", "--stream", ...commonArgs, ...Array.from(filePathToItem.keys())];
 
   const startedAtByFile = new Map<string, number>();
 
@@ -607,9 +598,7 @@ async function runTests(
         for (const file of coverageReport.files) {
           const total = file.statements?.total ?? 0;
           const covered = file.statements?.covered ?? 0;
-          const uri = file.uri.startsWith("file://")
-            ? vscode.Uri.parse(file.uri)
-            : vscode.Uri.parse(file.uri);
+          const uri = vscode.Uri.parse(file.uri);
           runWithCoverage.addCoverage(
             new vscode.FileCoverage(uri, { covered, total }),
           );

@@ -19,9 +19,10 @@ export class GRPCTestifyDiagnostics {
         text,
         document,
         sectionName: "ADDRESS",
-        validator: (line) => /^[\w.-]+:\d+$/.test(line),
+        validator: (line) =>
+          /^[\w.-]+:\d+$/.test(line) || /^\[[\da-fA-F:.]+\]:\d+$/.test(line),
         errorCode: "invalidAddress",
-        errorMessage: "Invalid address format. Expected: domain:port",
+        errorMessage: "Invalid address format. Expected: domain:port or [ipv6]:port",
       },
       diagnostics,
       sections,
@@ -211,8 +212,11 @@ export class GRPCTestifyDiagnostics {
   private parseJsonWithComments(content: string): any {
     const cleaned = content
       .split("\n")
-      .map((line) => line.split("#")[0].trim())
-      .filter((line) => line)
+      .map((line) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("#") || trimmed.startsWith("//")) return "";
+        return line;
+      })
       .join("\n");
 
     return JSON.parse(cleaned);
@@ -236,7 +240,9 @@ export class GRPCTestifyDiagnostics {
   private isSectionFilled(content: string): boolean {
     return content
       .split("\n")
-      .map((line) => line.split("#")[0].trim())
-      .some((line) => line.length > 0);
+      .some((line) => {
+        const trimmed = line.trim();
+        return trimmed.length > 0 && !trimmed.startsWith("#") && !trimmed.startsWith("//");
+      });
   }
 }
