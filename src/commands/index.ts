@@ -9,6 +9,8 @@ import { registerInspectCommand } from "./inspect";
 import { registerOnboardingCommands } from "./onboarding";
 import { registerReflectCommand } from "./reflect";
 import { registerRestartLspCommand } from "./restartLsp";
+import { registerCallCommand } from "./call";
+import { registerPlayCommand } from "./play";
 import { registerRunCommand } from "./run";
 
 export interface CommandDependencies {
@@ -21,6 +23,8 @@ export function registerCommands(
   dependencies: CommandDependencies,
 ): void {
   registerRunCommand(context);
+  registerCallCommand(context);
+  registerPlayCommand(context);
   registerCheckCommand(context);
   registerFmtCommand(context);
   registerInspectCommand(context);

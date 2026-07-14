@@ -9,6 +9,14 @@ import { GrpctestifyError } from "./errors";
 
 const execFileAsync = promisify(execFile);
 
+interface CacheEntry {
+  result: GrpctestifyBinary;
+  expiresAt: number;
+}
+
+let binaryCache: CacheEntry | undefined;
+let cacheKey: string | undefined;
+
 export interface BinaryCapabilities {
   run: boolean;
   check: boolean;
@@ -18,11 +26,16 @@ export interface BinaryCapabilities {
   list: boolean;
   reflect: boolean;
   lsp: boolean;
+  call: boolean;
+  bench: boolean;
+  play: boolean;
   stream: boolean;
   jsonOutput: boolean;
+  protocol: boolean;
+  exclude: boolean;
 }
 
-export const MIN_CLI_VERSION = "1.5.1";
+export const MIN_CLI_VERSION = "1.8.7";
 
 export interface GrpctestifyBinary {
   command: string;
@@ -130,8 +143,13 @@ async function detectCapabilities(
     list: true,
     reflect: true,
     lsp: true,
+    call: true,
+    bench: true,
+    play: true,
     stream: true,
     jsonOutput: true,
+    protocol: true,
+    exclude: true,
   };
 
   try {
@@ -150,17 +168,33 @@ async function detectCapabilities(
       list: text.includes("list"),
       reflect: text.includes("reflect"),
       lsp: text.includes("lsp"),
+      call: text.includes("call"),
+      bench: text.includes("bench"),
+      play: text.includes("play"),
       stream: text.includes("--stream"),
       jsonOutput: text.includes("--format"),
+      protocol: text.includes("--protocol"),
+      exclude: text.includes("--exclude"),
     };
   } catch {
     return defaults;
   }
 }
 
+const CACHE_TTL_MS = 30_000;
+
+export function invalidateBinaryCache(): void {
+  binaryCache = undefined;
+  cacheKey = undefined;
+}
+
 export async function resolveGrpctestifyBinary(): Promise<GrpctestifyBinary> {
   const settings = getSettings();
   const command = settings.binaryPath.trim() || "grpctestify";
+
+  if (binaryCache && cacheKey === command && Date.now() < binaryCache.expiresAt) {
+    return binaryCache.result;
+  }
 
   const resolvedPath = await resolveCommandPath(command);
   if (!resolvedPath) {
@@ -170,7 +204,7 @@ export async function resolveGrpctestifyBinary(): Promise<GrpctestifyBinary> {
     );
   }
 
-  let rawVersion = "";
+  let rawVersion: string;
   try {
     const { stdout, stderr } = await execFileAsync(
       resolvedPath,
@@ -201,7 +235,7 @@ export async function resolveGrpctestifyBinary(): Promise<GrpctestifyBinary> {
 
   const capabilities = await detectCapabilities(resolvedPath);
 
-  return {
+  const result: GrpctestifyBinary = {
     command,
     resolvedPath,
     version,
@@ -209,4 +243,8 @@ export async function resolveGrpctestifyBinary(): Promise<GrpctestifyBinary> {
     capabilities,
     meetsMinVersion: compareSemVer(version, MIN_CLI_VERSION) >= 0,
   };
+
+  binaryCache = { result, expiresAt: Date.now() + CACHE_TTL_MS };
+  cacheKey = command;
+  return result;
 }

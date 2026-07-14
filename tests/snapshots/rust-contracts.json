@@ -13,6 +13,7 @@
       "assertions": [],
       "connection": {
         "address": "localhost:4770",
+        "backend": "default",
         "source": "ADDRESS section [Line 0-2]"
       },
       "expectations": [
@@ -70,6 +71,7 @@
       "assertions": [],
       "connection": {
         "address": "localhost:4770",
+        "backend": "default",
         "source": "ADDRESS section [Line 0-2]"
       },
       "expectations": [
@@ -126,6 +128,7 @@
       "assertions": [],
       "connection": {
         "address": "localhost:4770",
+        "backend": "default",
         "source": "ADDRESS section [Line 0-2]"
       },
       "expectations": [
@@ -209,6 +212,28 @@
       ]
     },
     "diagnostics": [],
+    "effective_runtime": {
+      "compression": {
+        "source": "cli_defaults",
+        "value": "none"
+      },
+      "no_retry": {
+        "source": "cli_defaults",
+        "value": false
+      },
+      "retry": {
+        "source": "cli_defaults",
+        "value": 0
+      },
+      "retry_delay_seconds": {
+        "source": "cli_defaults",
+        "value": 1
+      },
+      "timeout_seconds": {
+        "source": "cli_defaults",
+        "value": 30
+      }
+    },
     "file": "<FILE>",
     "inferred_rpc_mode": "Unary",
     "optimization_hints": [],

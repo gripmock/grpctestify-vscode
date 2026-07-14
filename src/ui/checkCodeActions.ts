@@ -1,21 +1,13 @@
 import * as vscode from "vscode";
 
+import { cliRangeToVsCode } from "../runtime/contracts";
 import { getQuickFixForDiagnostic } from "./checkDiagnostics";
 
 function toRange(range: {
   start: { line: number; column: number };
   end: { line: number; column: number };
 }): vscode.Range {
-  return new vscode.Range(
-    new vscode.Position(
-      Math.max(0, range.start.line - 1),
-      Math.max(0, range.start.column - 1),
-    ),
-    new vscode.Position(
-      Math.max(0, range.end.line - 1),
-      Math.max(0, range.end.column - 1),
-    ),
-  );
+  return cliRangeToVsCode(range);
 }
 
 export function registerCheckCodeActions(

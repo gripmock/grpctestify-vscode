@@ -5,6 +5,9 @@ import {
   resolveGrpctestifyBinary,
 } from "../runtime/binaryResolver";
 import { GrpctestifyError } from "../runtime/errors";
+import { invalidateBinaryCache } from "../runtime/binaryResolver";
+import { isLspDegraded, onDidChangeLspDegraded } from "../runtime/lspEvents";
+import { isLiveDiagDegraded, onDidChangeLiveDiagDegraded } from "../ui/liveDiagnostics";
 
 const STATUS_ACTIONS_COMMAND_ID = "grpctestify.status.actions";
 
@@ -22,7 +25,16 @@ export function registerStatusBar(context: vscode.ExtensionContext): void {
   const refresh = async () => {
     try {
       const binary = await resolveGrpctestifyBinary();
-      if (binary.meetsMinVersion) {
+      if (isLspDegraded || isLiveDiagDegraded) {
+        const degradedParts: string[] = [];
+        if (isLspDegraded) degradedParts.push("LSP");
+        if (isLiveDiagDegraded) degradedParts.push("diagnostics");
+        item.text = `gRPCTestify: ${degradedParts.join("/")} degraded`;
+        item.tooltip = `${degradedParts.join("/")} degraded. Click for quick actions.`;
+        item.backgroundColor = new vscode.ThemeColor(
+          "statusBarItem.warningBackground",
+        );
+      } else if (binary.meetsMinVersion) {
         item.text = "gRPCTestify: ready";
         item.tooltip = `gRPCTestify ready\n${binary.resolvedPath}\nVersion: ${binary.version}`;
         item.backgroundColor = undefined;
@@ -78,10 +90,20 @@ export function registerStatusBar(context: vscode.ExtensionContext): void {
 
   const configWatcher = vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration("grpctestify.binary.path")) {
+      invalidateBinaryCache();
       void refresh();
     }
   });
 
   context.subscriptions.push(configWatcher);
+
+  context.subscriptions.push(
+    onDidChangeLspDegraded.event(() => void refresh()),
+  );
+
+  context.subscriptions.push(
+    onDidChangeLiveDiagDegraded.event(() => void refresh()),
+  );
+
   void refresh();
 }

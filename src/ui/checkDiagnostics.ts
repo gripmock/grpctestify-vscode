@@ -2,6 +2,7 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 
 import type { CheckDiagnostic, CheckReport } from "../runtime/contracts";
+import { cliRangeToVsCode } from "../runtime/contracts";
 
 let diagnosticCollection: vscode.DiagnosticCollection | undefined;
 const quickFixRegistry = new Map<
@@ -39,16 +40,7 @@ function severityToVsCode(
 }
 
 function toRange(range: CheckDiagnostic["range"]): vscode.Range {
-  return new vscode.Range(
-    new vscode.Position(
-      Math.max(range.start.line - 1, 0),
-      Math.max(range.start.column - 1, 0),
-    ),
-    new vscode.Position(
-      Math.max(range.end.line - 1, 0),
-      Math.max(range.end.column - 1, 0),
-    ),
-  );
+  return cliRangeToVsCode(range);
 }
 
 function toUri(file: string): vscode.Uri {

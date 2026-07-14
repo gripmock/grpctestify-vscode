@@ -1,7 +1,1 @@
-import type * as vscode from "vscode";
-
-import { registerTestingController } from "./controller";
-
-export function registerTesting(context: vscode.ExtensionContext): void {
-  registerTestingController(context);
-}
+export { registerTestingController as registerTesting } from "./controller";

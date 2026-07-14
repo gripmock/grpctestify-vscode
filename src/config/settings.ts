@@ -7,7 +7,8 @@ export const settingKeys = {
   lspEnabled: "grpctestify.lsp.enabled",
   testingAutoDiscover: "grpctestify.testing.autoDiscover",
   testingDebugMode: "grpctestify.testing.debugMode",
-  testingNativeDebugBridge: "grpctestify.testing.nativeDebugBridge",
+  defaultProtocol: "grpctestify.defaultProtocol",
+  defaultExclude: "grpctestify.defaultExclude",
   defaultArgsRun: "grpctestify.defaultArgs.run",
   defaultArgsCheck: "grpctestify.defaultArgs.check",
   formatOnSave: "grpctestify.formatOnSave",
@@ -15,12 +16,15 @@ export const settingKeys = {
 
 export type TestingDebugMode = "stream" | "native";
 
+export type ProtocolMode = "grpc" | "grpc-web" | "connectrpc";
+
 export interface ExtensionSettings {
   binaryPath: string;
   lspEnabled: boolean;
   testingAutoDiscover: boolean;
   testingDebugMode: TestingDebugMode;
-  testingNativeDebugBridge: boolean;
+  defaultProtocol: ProtocolMode;
+  defaultExclude: string[];
   defaultArgsRun: string[];
   defaultArgsCheck: string[];
   formatOnSave: boolean;
@@ -31,7 +35,8 @@ const defaultSettings: ExtensionSettings = {
   lspEnabled: true,
   testingAutoDiscover: true,
   testingDebugMode: "stream",
-  testingNativeDebugBridge: false,
+  defaultProtocol: "grpc",
+  defaultExclude: [],
   defaultArgsRun: [],
   defaultArgsCheck: [],
   formatOnSave: false,
@@ -58,10 +63,14 @@ export function getSettings(): ExtensionSettings {
       defaultSettings.testingAutoDiscover,
     ),
     testingDebugMode: debugMode === "native" ? "native" : "stream",
-    testingNativeDebugBridge: configuration.get<boolean>(
-      settingKeys.testingNativeDebugBridge,
-      defaultSettings.testingNativeDebugBridge,
-    ),
+    defaultProtocol: configuration.get<ProtocolMode>(
+      settingKeys.defaultProtocol,
+      defaultSettings.defaultProtocol,
+    ) ?? "grpc",
+    defaultExclude: configuration.get<string[]>(
+      settingKeys.defaultExclude,
+      defaultSettings.defaultExclude,
+    ) ?? [],
     defaultArgsRun: configuration.get<string[]>(
       settingKeys.defaultArgsRun,
       defaultSettings.defaultArgsRun,

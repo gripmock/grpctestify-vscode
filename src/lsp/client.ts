@@ -3,6 +3,7 @@ import type * as vscode from "vscode";
 import { getSettings } from "../config/settings";
 import { resolveGrpctestifyBinary } from "../runtime/binaryResolver";
 import { toErrorMessage } from "../runtime/errors";
+import { onDidChangeLspDegraded } from "../runtime/lspEvents";
 import { getDebugChannel, getOutputChannel } from "../ui/outputChannels";
 
 interface LanguageClientModule {
@@ -174,10 +175,10 @@ export class GrpctestifyLspClient {
       await this.client.start();
       this.consecutiveFailures = 0;
       this.lastStartedAt = new Date().toISOString();
+      onDidChangeLspDegraded.fire(false);
       debug.appendLine("[lsp] started");
     } catch (error) {
       this.client = undefined;
-      this.consecutiveFailures += 1;
       const message = `Failed to start gRPCTestify LSP: ${toErrorMessage(error)}`;
       output.appendLine(message);
       debug.appendLine(`[lsp:error] ${message}`);
@@ -185,6 +186,7 @@ export class GrpctestifyLspClient {
         output.appendLine(
           "[lsp] Degraded mode after repeated failures. Use 'gRPCTestify: Restart LSP' after fixing binary/runtime issues.",
         );
+        onDidChangeLspDegraded.fire(true);
       }
     }
   }
@@ -232,6 +234,7 @@ export class GrpctestifyLspClient {
 
     if (this.consecutiveFailures >= 3) {
       output.appendLine("LSP degraded mode active due to repeated failures.");
+      onDidChangeLspDegraded.fire(true);
     }
 
     this.restarting = false;

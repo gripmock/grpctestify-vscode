@@ -1,3 +1,5 @@
+import * as vscode from "vscode";
+
 import { GrpctestifyError } from "./errors";
 
 export interface CliRangePoint {
@@ -8,6 +10,19 @@ export interface CliRangePoint {
 export interface CliRange {
   start: CliRangePoint;
   end: CliRangePoint;
+}
+
+export function cliRangeToVsCode(range: CliRange): vscode.Range {
+  return new vscode.Range(
+    new vscode.Position(
+      Math.max(0, range.start.line - 1),
+      Math.max(0, range.start.column - 1),
+    ),
+    new vscode.Position(
+      Math.max(0, range.end.line - 1),
+      Math.max(0, range.end.column - 1),
+    ),
+  );
 }
 
 export interface ListTestItem {

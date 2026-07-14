@@ -6,10 +6,12 @@ import {
   resolveGrpctestifyBinary,
 } from "./runtime/binaryResolver";
 import { GrpctestifyError, toErrorMessage } from "./runtime/errors";
+import { registerLanguageStatus } from "./status/languageStatus";
 import { registerStatus } from "./status";
 import { registerTasks } from "./tasks";
 import { registerTesting } from "./testing";
 import { getTestingControllerDebugState } from "./testing/controller";
+import { registerFileDecorations } from "./tree/fileDecorations";
 import { registerTree } from "./tree";
 import { registerCodeLens } from "./ui/codeLens";
 import { registerCheckCodeActions } from "./ui/checkCodeActions";
@@ -17,9 +19,12 @@ import { initializeCheckDiagnostics } from "./ui/checkDiagnostics";
 import { registerCompletionProvider } from "./ui/completionProvider";
 import { registerDocumentLinks } from "./ui/documentLinks";
 import { registerFormatting } from "./ui/formatProvider";
+import { registerFoldingProvider } from "./ui/foldingProvider";
 import { registerHoverProvider } from "./ui/hoverProvider";
+import { registerInlayHintsProvider } from "./ui/inlayHintsProvider";
 import { registerLiveDiagnostics } from "./ui/liveDiagnostics";
 import { getDebugChannel, initializeOutputChannels } from "./ui/outputChannels";
+import { registerPasteProvider } from "./ui/pasteProvider";
 
 interface LspDebugState {
   hasClient: boolean;
@@ -171,12 +176,24 @@ export async function activate(context: vscode.ExtensionContext) {
   markIntegrationOk("commands");
 
   registerOptionalIntegration("tree", () => registerTree(context));
+  registerOptionalIntegration("fileDecorations", () =>
+    registerFileDecorations(context),
+  );
   registerOptionalIntegration("testing", () => registerTesting(context));
+  registerOptionalIntegration("languageStatus", () =>
+    registerLanguageStatus(context),
+  );
   registerOptionalIntegration("status", () => registerStatus(context));
   registerOptionalIntegration("tasks", () => registerTasks(context));
   registerOptionalIntegration("formatting", () => registerFormatting(context));
   registerOptionalIntegration("codeLens", () => registerCodeLens(context));
   registerOptionalIntegration("hover", () => registerHoverProvider(context));
+  registerOptionalIntegration("inlayHints", () =>
+    registerInlayHintsProvider(context),
+  );
+  registerOptionalIntegration("folding", () =>
+    registerFoldingProvider(context),
+  );
   registerOptionalIntegration("documentLinks", () =>
     registerDocumentLinks(context),
   );
@@ -194,6 +211,7 @@ export async function activate(context: vscode.ExtensionContext) {
       isLspRunning: () => lspClient?.getDebugState().running ?? false,
     }),
   );
+  registerOptionalIntegration("paste", () => registerPasteProvider(context));
 
   void showBinaryOnboardingIfNeeded();
 

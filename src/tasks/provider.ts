@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 
+import { checkArgsWithDefaults, runArgsWithDefaults } from "../commands/commandRuntime";
 import { getSettings } from "../config/settings";
 
 interface GrpctestifyTaskDefinition extends vscode.TaskDefinition {
@@ -13,7 +14,6 @@ function buildTask(
   folder: vscode.WorkspaceFolder,
   kind: GrpctestifyTaskDefinition["task"],
 ): vscode.Task {
-  const settings = getSettings();
   const definition: GrpctestifyTaskDefinition = {
     type: TASK_TYPE,
     task: kind,
@@ -22,11 +22,12 @@ function buildTask(
 
   const args =
     kind === "run"
-      ? ["run", folder.uri.fsPath, ...settings.defaultArgsRun]
+      ? runArgsWithDefaults([folder.uri.fsPath])
       : kind === "check"
-        ? ["check", folder.uri.fsPath, ...settings.defaultArgsCheck]
+        ? checkArgsWithDefaults([folder.uri.fsPath])
         : ["fmt", folder.uri.fsPath, "--write"];
 
+  const settings = getSettings();
   const execution = new vscode.ProcessExecution(settings.binaryPath, args, {
     cwd: folder.uri.fsPath,
   });
